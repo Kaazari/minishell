@@ -1,30 +1,51 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   utils.c                                            :+:      :+:    :+:   */
+/*   cleaner.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kclaudan <kclaudan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 00:00:00 by anonymous         #+#    #+#             */
-/*   Updated: 2025/07/17 16:31:57 by kclaudan         ###   ########.fr       */
+/*   Updated: 2025/07/17 16:31:27 by kclaudan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/minishell.h"
-#include "pipex.h"
+#include "../../include/minishell.h"
 
-void	setup_pipe_in(t_pipex *pipex, int cmd_index)
-{
-	if (cmd_index > 0)
-	{
-		dup2(pipex->pipe_fds[2 * (cmd_index - 1)], STDIN_FILENO);
-	}
-}
+// void free_split(char **split)
+// {
+// 	int i;
+// 	if (!split)
+// 		return ;
+// 	i = 0;
+// 	while (split[i])
+// 	{
+// 		free(split[i]);
+// 		split[i] = NULL;
+// 		i++;
+// 	}
+// 	free(split);
+// }
 
-void	setup_pipe_out(t_pipex *pipex, int cmd_index)
+void	free_cmd(t_cmd *cmd)
 {
-	if (cmd_index < pipex->cmd_count - 1)
+	int	i;
+
+	if (!cmd)
+		return ;
+	if (cmd->args)
 	{
-		dup2(pipex->pipe_fds[2 * cmd_index + 1], STDOUT_FILENO);
+		i = 0;
+		while (cmd->args[i])
+			free(cmd->args[i++]);
+		free(cmd->args);
 	}
+	if (cmd->redirs)
+	{
+		i = 0;
+		while (i < cmd->redir_count)
+			free(cmd->redirs[i++].file);
+		free(cmd->redirs);
+	}
+	free(cmd);
 }

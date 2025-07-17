@@ -1,5 +1,17 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   pipes.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: kclaudan <kclaudan@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/01/01 00:00:00 by anonymous         #+#    #+#             */
+/*   Updated: 2025/07/17 16:31:53 by kclaudan         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../include/minishell.h"
 #include "pipex.h"
-#include "../minishell.h"
 
 void	init_pipes(t_pipex *pipex, int cmd_count)
 {
@@ -7,14 +19,23 @@ void	init_pipes(t_pipex *pipex, int cmd_count)
 
 	pipex->cmd_count = cmd_count;
 	pipex->pipe_count = cmd_count - 1;
+	if (pipex->pipe_count <= 0)
+	{
+		pipex->pipe_fds = NULL;
+		return ;
+	}
 	pipex->pipe_fds = malloc(sizeof(int) * 2 * pipex->pipe_count);
 	if (!pipex->pipe_fds)
+	{
+		perror("malloc");
 		return ;
+	}
 	i = 0;
 	while (i < pipex->pipe_count)
 	{
 		if (pipe(pipex->pipe_fds + 2 * i) == -1)
 		{
+			perror("pipe");
 			free(pipex->pipe_fds);
 			pipex->pipe_fds = NULL;
 			return ;

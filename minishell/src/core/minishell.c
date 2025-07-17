@@ -1,33 +1,61 @@
-#include "minishell.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   minishell.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: kclaudan <kclaudan@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/01/01 00:00:00 by anonymous         #+#    #+#             */
+/*   Updated: 2025/07/17 16:27:04 by kclaudan         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-t_shell	*g_shell = NULL;
+#include "../../include/minishell.h"
 
-static void	clean_exit(int status)
+t_shell		*g_shell = NULL;
+
+static void	cleanup_pipex(t_shell *shell)
+{
+	if (shell->pipex)
+	{
+		if (shell->pipex->pipe_fds)
+			free(shell->pipex->pipe_fds);
+		free(shell->pipex);
+	}
+}
+
+static void	cleanup_cmd(t_shell *shell)
+{
+	if (shell->cmd)
+	{
+		free_cmd(shell->cmd);
+		shell->cmd = NULL;
+	}
+}
+
+static void	cleanup_envp(t_shell *shell)
 {
 	char	**tmp;
 
+	if (shell->local_envp)
+	{
+		tmp = shell->local_envp;
+		while (*tmp)
+			free(*tmp++);
+		free(shell->local_envp);
+	}
+}
+
+void	clean_exit(int status)
+{
 	if (g_shell)
 	{
-		if (g_shell->pipex)
-		{
-			if (g_shell->pipex->pipe_fds)
-				free(g_shell->pipex->pipe_fds);
-			free(g_shell->pipex);
-		}
-		if (g_shell->cmd)
-		{
-			free_cmd(g_shell->cmd);
-			g_shell->cmd = NULL;
-		}
-		if (g_shell->local_envp)
-		{
-			tmp = g_shell->local_envp;
-			while (*tmp)
-				free(*tmp++);
-			free(g_shell->local_envp);
-		}
+		cleanup_pipex(g_shell);
+		cleanup_cmd(g_shell);
+		cleanup_envp(g_shell);
+		g_shell = NULL;
 	}
-	rl_clear_history();
+	clear_history();
 	exit(status);
 }
 
@@ -43,9 +71,6 @@ void	signal_handler(int signo)
 		else
 		{
 			write(STDOUT_FILENO, "\n", 1);
-			rl_replace_line("", 0);
-			rl_on_new_line();
-			rl_redisplay();
 			g_shell->state = 1;
 		}
 	}
@@ -101,101 +126,24 @@ void	execute_shell_command(char **args, t_shell *shell)
 static void	init_shell(t_shell *shell, char **envp)
 {
 	shell->envp = envp;
+	shell->local_envp = NULL;
 	shell->state = 0;
 	shell->exit_status = 0;
 	shell->pipex = malloc(sizeof(t_pipex));
 	if (!shell->pipex)
-		return ;
+	{
+		printf("Error: Failed to allocate memory for pipex\n");
+		exit(1);
+	}
 	shell->pipex->pipe_fds = NULL;
 	shell->cmd = create_cmd();
 	if (!shell->cmd)
 	{
 		free(shell->pipex);
-		return ;
+		printf("Error: Failed to allocate memory for cmd\n");
+		exit(1);
 	}
 	g_shell = shell;
-}
-
-static int	process_empty_input(char *input)
-{
-	int	i;
-
-	i = 0;
-	if (strlen(input) == 0)
-		return (1);
-	while (input[i])
-	{
-		if (input[i] != ' ' && input[i] != '\t' && input[i] != '\n'
-			&& input[i] != '\r')
-			return (0);
-		i++;
-	}
-	return (1);
-}
-
-static void	handle_single_command(t_shell *shell, t_cmd **commands)
-{
-	shell->cmd = commands[0];
-	execute_shell_command(commands[0]->args, shell);
-	free(commands);
-}
-
-static void	handle_piped_commands(t_shell *shell, t_cmd **commands, int count)
-{
-	int	i;
-
-	execute_piped_commands(shell, commands, count);
-	i = 0;
-	while (i < count)
-	{
-		free_cmd(commands[i]);
-		i++;
-	}
-	free(commands);
-}
-
-static void	process_command(t_shell *shell, char *input)
-{
-	int		cmd_count;
-	t_cmd	**commands;
-
-	commands = tokenize_piped_commands(input, &cmd_count);
-	if (!commands || !commands[0])
-	{
-		if (commands)
-			free(commands);
-		return ;
-	}
-	if (cmd_count == 1)
-		handle_single_command(shell, commands);
-	else
-		handle_piped_commands(shell, commands, cmd_count);
-}
-
-void	main_shell_loop(t_shell *shell)
-{
-	char	*input;
-
-	while (1)
-	{
-		shell->state = 0;
-		input = readline("minishell> ");
-		if (!input)
-			clean_exit(0);
-		if (shell->state == 1)
-		{
-			free(input);
-			continue ;
-		}
-		if (strlen(input) > 0)
-			add_history(input);
-		if (process_empty_input(input))
-			continue ;
-		process_command(shell, input);
-		free(input);
-		if (shell->state == 2)
-			clean_exit(131);
-	}
 }
 
 int	main(int ac, char **av, char **envp)
