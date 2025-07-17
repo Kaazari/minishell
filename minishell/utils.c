@@ -1,81 +1,157 @@
 #include "minishell.h"
 
-static char *try_path(char *dir, char *command)
+char	*check_absolute_path(char *command)
 {
-	char *full_path;
-
-	full_path = malloc(strlen(dir) + strlen(command) + 2);
-	if (!full_path)
-		return NULL;
-
-	strcpy(full_path, dir);
-	strcat(full_path, "/");
-	strcat(full_path, command);
-
-	if (access(full_path, X_OK) == 0)
-		return full_path;
-
-	free(full_path);
-	return NULL;
-}
-
-char *find_command_in_path(char *command)
-{
-	char *path_env = getenv("PATH");
-	char *path_copy;
-	char *dir;
-	char *full_path;
-
-	if (!path_env)
-		return NULL;
-
-	path_copy = malloc(strlen(path_env) + 1);
-	if (!path_copy)
-		return NULL;
-	strcpy(path_copy, path_env);
-
-	dir = strtok(path_copy, ":");
-	while (dir != NULL)
+	if (command[0] == '/' || command[0] == '.')
 	{
-		full_path = try_path(dir, command);
-		if (full_path)
-		{
-			free(path_copy);
-			return full_path;
-		}
-		dir = strtok(NULL, ":");
+		if (access(command, X_OK) == 0)
+			return (ft_strdup(command));
+		return (NULL);
 	}
-
-	free(path_copy);
-	return NULL;
+	return (NULL);
 }
 
-void print_export_format(char **envp)
+char	*search_in_path(char *command, char **paths)
 {
-	for (int i = 0; envp[i]; i++)
+	char	*dir;
+	char	*full_path;
+	int		i;
+
+	i = 0;
+	while (paths[i])
+	{
+		dir = ft_strjoin(paths[i], "/");
+		full_path = ft_strjoin(dir, command);
+		free(dir);
+		if (access(full_path, X_OK) == 0)
+		{
+			free_args(paths);
+			return (full_path);
+		}
+		free(full_path);
+		i++;
+	}
+	return (NULL);
+}
+
+char	*find_command_in_path(char *command)
+{
+	char	*path;
+	char	*result;
+	char	**paths;
+
+	result = check_absolute_path(command);
+	if (result)
+		return (result);
+	path = getenv("PATH");
+	if (!path)
+		return (NULL);
+	paths = ft_split(path, ':');
+	result = search_in_path(command, paths);
+	if (!result)
+		free_args(paths);
+	return (result);
+}
+
+void	print_export_format(char **envp)
+{
+	int	i;
+
+	i = 0;
+	while (envp[i])
 	{
 		printf("declare -x %s\n", envp[i]);
+		i++;
 	}
 }
 
-void add_or_update_env(char *var, t_shell *shell)
+int	update_existing_env_var(char *var, t_shell *shell)
 {
-	(void)shell;
-	char *equal_pos = strchr(var, '=');
-	if (equal_pos)
+	int	i;
+
+	i = 0;
+	while (shell->envp[i])
 	{
-		*equal_pos = '\0';
-		setenv(var, equal_pos + 1, 1);
-		*equal_pos = '=';
+		if (ft_strncmp(shell->envp[i], var, ft_strchr(var, '=') - var) == 0)
+		{
+			free(shell->envp[i]);
+			shell->envp[i] = ft_strdup(var);
+			return (1);
+		}
+		i++;
 	}
+	return (0);
 }
 
-void export_existing_var(char *var, t_shell *shell)
+void	add_new_env_var(char *var, t_shell *shell)
 {
-	(void)shell;
-	char *value = getenv(var);
-	if (value)
+	int		i;
+	char	**new_envp;
+	int		len;
+
+	len = 0;
+	while (shell->envp[len])
+		len++;
+	new_envp = malloc(sizeof(char *) * (len + 2));
+	i = 0;
+	while (shell->envp[i])
 	{
-		setenv(var, value, 1);
+		new_envp[i] = ft_strdup(shell->envp[i]);
+		i++;
 	}
+	new_envp[i] = ft_strdup(var);
+	new_envp[i + 1] = NULL;
+	free_args(shell->envp);
+	shell->envp = new_envp;
+}
+
+void	add_or_update_env(char *var, t_shell *shell)
+{
+	if (update_existing_env_var(var, shell))
+		return ;
+	add_new_env_var(var, shell);
+}
+
+void	export_existing_var(char *var, t_shell *shell)
+{
+	int		i;
+	char	**new_envp;
+	int		len;
+
+	i = 0;
+	while (shell->envp[i])
+	{
+		if (ft_strncmp(shell->envp[i], var, ft_strlen(var)) == 0)
+			return ;
+		i++;
+	}
+	len = 0;
+	while (shell->envp[len])
+		len++;
+	new_envp = malloc(sizeof(char *) * (len + 2));
+	i = 0;
+	while (shell->envp[i])
+	{
+		new_envp[i] = ft_strdup(shell->envp[i]);
+		i++;
+	}
+	new_envp[i] = ft_strdup(var);
+	new_envp[i + 1] = NULL;
+	free_args(shell->envp);
+	shell->envp = new_envp;
+}
+
+void	free_args(char **args)
+{
+	int	i;
+
+	if (!args)
+		return ;
+	i = 0;
+	while (args[i])
+	{
+		free(args[i]);
+		i++;
+	}
+	free(args);
 }

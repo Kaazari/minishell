@@ -1,149 +1,211 @@
 #include "minishell.h"
 
-void	handle_redirection(t_cmd *cmd)
+t_shell	*g_shell = NULL;
+
+static void	clean_exit(int status)
 {
-	int	i;
-	int	fd;
+	char	**tmp;
 
-	i = 0;
-	while (i < cmd->redir_count)
+	if (g_shell)
 	{
-		printf("DEBUG: Processing redirection %d of type %d to file '%s'\n",
-			i, cmd->redirs[i].type, cmd->redirs[i].file);
+		if (g_shell->pipex)
+		{
+			if (g_shell->pipex->pipe_fds)
+				free(g_shell->pipex->pipe_fds);
+			free(g_shell->pipex);
+		}
+		if (g_shell->cmd)
+		{
+			free_cmd(g_shell->cmd);
+			g_shell->cmd = NULL;
+		}
+		if (g_shell->local_envp)
+		{
+			tmp = g_shell->local_envp;
+			while (*tmp)
+				free(*tmp++);
+			free(g_shell->local_envp);
+		}
+	}
+	rl_clear_history();
+	exit(status);
+}
 
-		if (cmd->redirs[i].type == REDIR_OUT || cmd->redirs[i].type == REDIR_APPEND)
+void	signal_handler(int signo)
+{
+	if (signo == SIGINT)
+	{
+		if (g_shell->state == 3)
 		{
-			int flags = O_WRONLY | O_CREAT;
-			if (cmd->redirs[i].type == REDIR_APPEND)
-				flags |= O_APPEND;
-			else
-				flags |= O_TRUNC;
-			fd = open(cmd->redirs[i].file, flags, 0644);
-			printf("DEBUG: Opened output file with fd %d\n", fd);
-			if (fd != -1)
-			{
-				cmd->redirs[i].fd = dup(STDOUT_FILENO);
-				printf("DEBUG: Saved stdout (fd %d) and redirecting to fd %d\n",
-					cmd->redirs[i].fd, fd);
-				dup2(fd, STDOUT_FILENO);
-				close(fd);
-			}
-			else
-				perror("open");
+			write(STDOUT_FILENO, "\n", 1);
+			g_shell->state = 1;
 		}
-		else if (cmd->redirs[i].type == REDIR_IN)
+		else
 		{
-			fd = open(cmd->redirs[i].file, O_RDONLY);
-			if (fd != -1)
-			{
-				cmd->redirs[i].fd = dup(STDIN_FILENO);
-				dup2(fd, STDIN_FILENO);
-				close(fd);
-			}
+			write(STDOUT_FILENO, "\n", 1);
+			rl_replace_line("", 0);
+			rl_on_new_line();
+			rl_redisplay();
+			g_shell->state = 1;
 		}
-		i++;
 	}
 }
 
-void	restore_redirections(t_cmd *cmd)
+static void	setup_signals(void)
 {
-	int	i;
+	struct sigaction	sa;
 
-	i = 0;
-	while (i < cmd->redir_count)
-	{
-		if (cmd->redirs[i].type == REDIR_OUT || cmd->redirs[i].type == REDIR_APPEND)
-			dup2(cmd->redirs[i].fd, STDOUT_FILENO);
-		else if (cmd->redirs[i].type == REDIR_IN)
-			dup2(cmd->redirs[i].fd, STDIN_FILENO);
-		close(cmd->redirs[i].fd);
-		free(cmd->redirs[i].file);
-		i++;
-	}
-	cmd->redir_count = 0;
+	sa.sa_handler = signal_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	sigaction(SIGINT, &sa, NULL);
+	sa.sa_handler = SIG_IGN;
+	sigaction(SIGQUIT, &sa, NULL);
 }
 
-static void execute_builtin_command(char **args, t_shell *shell)
+static void	execute_builtin_command(char **args, t_shell *shell)
 {
 	if (strcmp(args[0], "cd") == 0)
-		builtin_cd(args);
+		shell->exit_status = builtin_cd(args);
 	else if (strcmp(args[0], "pwd") == 0)
-		builtin_pwd(args);
-	else if (strcmp(args[0], "export") == 0)
-		builtin_export(args, shell);
-	else if (strcmp(args[0], "unset") == 0)
-		builtin_unset(args, shell);
+		shell->exit_status = builtin_pwd(args);
+	else if (strcmp(args[0], "echo") == 0)
+		shell->exit_status = builtin_echo(args);
 	else if (strcmp(args[0], "env") == 0)
-		builtin_env(args, shell);
+		shell->exit_status = builtin_env(args, shell);
+	else if (strcmp(args[0], "export") == 0)
+		shell->exit_status = builtin_export(args, shell);
+	else if (strcmp(args[0], "unset") == 0)
+		shell->exit_status = builtin_unset(args, shell);
 	else if (strcmp(args[0], "exit") == 0)
 		builtin_exit(args);
-	else if (strcmp(args[0], "echo") == 0)
-		builtin_echo(args);
+	else if (strcmp(args[0], ":") == 0)
+		shell->exit_status = builtin_colon(args);
 	else
 		execute_external_commands(args, shell->envp);
 }
 
-void execute_command(char **args, t_shell *shell)
+void	execute_shell_command(char **args, t_shell *shell)
 {
-	t_cmd *cmd;
+	int	old_state;
 
-	if (!args || !args[0])
-		return;
-
-	printf("DEBUG: Starting command execution\n");
-	cmd = shell->cmd;  // Utiliser la structure cmd existante
-
-	handle_redirection(cmd);
-	execute_builtin_command(args, shell);
-	restore_redirections(cmd);
+	old_state = shell->state;
+	shell->state = 3;
+	handle_redirections(shell->cmd);
+	if (args && args[0])
+		execute_builtin_command(args, shell);
+	restore_redirections(shell->cmd);
+	shell->state = old_state;
 }
 
-static void init_shell(t_shell *shell, char **envp)
+static void	init_shell(t_shell *shell, char **envp)
 {
 	shell->envp = envp;
+	shell->state = 0;
+	shell->exit_status = 0;
+	shell->pipex = malloc(sizeof(t_pipex));
+	if (!shell->pipex)
+		return ;
+	shell->pipex->pipe_fds = NULL;
+	shell->cmd = create_cmd();
+	if (!shell->cmd)
+	{
+		free(shell->pipex);
+		return ;
+	}
+	g_shell = shell;
 }
 
-static int process_empty_input(char *input)
+static int	process_empty_input(char *input)
 {
+	int	i;
+
+	i = 0;
 	if (strlen(input) == 0)
-	{
-		free(input);
 		return (1);
-	}
-	return (0);
-}
-
-static void process_command(t_shell *shell, char *input)
-{
-	shell->cmd = tokenize_input(input);
-	if (shell->cmd)
+	while (input[i])
 	{
-		execute_command(shell->cmd->args, shell);
-		free_cmd(shell->cmd);
+		if (input[i] != ' ' && input[i] != '\t' && input[i] != '\n'
+			&& input[i] != '\r')
+			return (0);
+		i++;
 	}
+	return (1);
 }
 
-int main(int ac, char **av, char **envp)
+static void	handle_single_command(t_shell *shell, t_cmd **commands)
 {
-	(void)ac;
-	(void)av;
-	t_shell shell;
-	char *input;
+	shell->cmd = commands[0];
+	execute_shell_command(commands[0]->args, shell);
+	free(commands);
+}
 
-	init_shell(&shell, envp);
+static void	handle_piped_commands(t_shell *shell, t_cmd **commands, int count)
+{
+	int	i;
+
+	execute_piped_commands(shell, commands, count);
+	i = 0;
+	while (i < count)
+	{
+		free_cmd(commands[i]);
+		i++;
+	}
+	free(commands);
+}
+
+static void	process_command(t_shell *shell, char *input)
+{
+	int		cmd_count;
+	t_cmd	**commands;
+
+	commands = tokenize_piped_commands(input, &cmd_count);
+	if (!commands || !commands[0])
+	{
+		if (commands)
+			free(commands);
+		return ;
+	}
+	if (cmd_count == 1)
+		handle_single_command(shell, commands);
+	else
+		handle_piped_commands(shell, commands, cmd_count);
+}
+
+void	main_shell_loop(t_shell *shell)
+{
+	char	*input;
+
 	while (1)
 	{
+		shell->state = 0;
 		input = readline("minishell> ");
 		if (!input)
+			clean_exit(0);
+		if (shell->state == 1)
 		{
-			printf("exit\n");
-			break;
+			free(input);
+			continue ;
 		}
-		add_history(input);
+		if (strlen(input) > 0)
+			add_history(input);
 		if (process_empty_input(input))
-			continue;
-		process_command(&shell, input);
+			continue ;
+		process_command(shell, input);
 		free(input);
+		if (shell->state == 2)
+			clean_exit(131);
 	}
+}
+
+int	main(int ac, char **av, char **envp)
+{
+	t_shell	shell;
+
+	(void)ac;
+	(void)av;
+	setup_signals();
+	init_shell(&shell, envp);
+	main_shell_loop(&shell);
 	return (0);
 }

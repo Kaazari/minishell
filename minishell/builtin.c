@@ -1,38 +1,40 @@
 #include "minishell.h"
 
-void builtin_cd(char **args) {
-	char *path;
-	if (args[1] == NULL) {
-		path = getenv("HOME");
-	} else if (strcmp(args[1], "-") == 0) {
-		path = getenv("OLDPWD");
-	} else {
-		path = args[1];
-	}
+int	builtin_cd(char **args)
+{
+	char	*path;
 
-	if (path && chdir(path) != 0) {
+	if (args[1] == NULL)
+		path = getenv("HOME");
+	else if (strcmp(args[1], "-") == 0)
+		path = getenv("OLDPWD");
+	else
+		path = args[1];
+	if (path && chdir(path) != 0)
+	{
 		perror("cd");
+		return (1);
 	}
+	return (0);
 }
 
-void builtin_pwd(char **args) {
+int	builtin_pwd(char **args)
+{
+	char	*cwd;
+
 	(void)args;
-	char *cwd = getcwd(NULL, 0);
-	if (cwd) {
+	cwd = getcwd(NULL, 0);
+	if (cwd)
+	{
 		printf("%s\n", cwd);
 		free(cwd);
-	} else {
+		return (0);
+	}
+	else
+	{
 		perror("pwd");
+		return (1);
 	}
-}
-
-void builtin_exit(char **args) {
-	int exit_code = 0;
-	if (args[1] != NULL) {
-		exit_code = atoi(args[1]);
-	}
-	printf("exit\n");
-	exit(exit_code);
 }
 
 static void	remove_env_var(t_shell *shell, int index)
@@ -46,65 +48,57 @@ static void	remove_env_var(t_shell *shell, int index)
 	shell->envp[index] = NULL;
 }
 
-static void unset_single_var(char *var_name, t_shell *shell)
+static void	unset_single_var(char *var_name, t_shell *shell)
 {
-	int j = 0;
-	int len = strlen(var_name);
+	int	j;
+	int	len;
 
+	j = 0;
+	len = strlen(var_name);
 	while (shell->envp[j])
 	{
 		if (strncmp(shell->envp[j], var_name, len) == 0
 			&& (shell->envp[j][len] == '=' || shell->envp[j][len] == '\0'))
 		{
 			remove_env_var(shell, j);
-			break;
+			break ;
 		}
 		j++;
 	}
 }
 
-void builtin_unset(char **args, t_shell *shell)
+int	builtin_unset(char **args, t_shell *shell)
 {
+	int	i;
+
 	if (args[1] == NULL)
 	{
 		printf("unset: not enough arguments\n");
-		return;
+		return (1);
 	}
-
-	int i = 1;
+	i = 1;
 	while (args[i])
 	{
 		unset_single_var(args[i], shell);
 		i++;
 	}
+	return (0);
 }
 
-static int	is_valid_identifier(const char *str)
+int	builtin_echo(char **args)
 {
 	int	i;
+	int	nline;
 
-	if (!str || !*str || (!ft_isalpha(*str) && *str != '_'))
-		return (0);
 	i = 1;
-	while (str[i])
+	nline = 1;
+	if (args[1] && strcmp(args[1], "-n") == 0)
 	{
-		if (!ft_isalnum(str[i]) && str[i] != '_')
-			return (0);
-		i++;
-	}
-	return (1);
-}
-
-void builtin_echo(char **args) {
-	int i = 1;
-	int nline = 1;
-
-	if (args[1] && strcmp(args[1], "-n") == 0) {
 		nline = 0;
 		i = 2;
 	}
-
-	while (args[i]) {
+	while (args[i])
+	{
 		write(STDOUT_FILENO, args[i], strlen(args[i]));
 		if (args[i + 1])
 			write(STDOUT_FILENO, " ", 1);
@@ -112,52 +106,62 @@ void builtin_echo(char **args) {
 	}
 	if (nline)
 		write(STDOUT_FILENO, "\n", 1);
+	return (0);
 }
 
-void builtin_env(char **args, t_shell *shell) {
+int	builtin_env(char **args, t_shell *shell)
+{
+	int	i;
+
 	(void)args;
-	for (int i = 0; shell->envp[i]; i++) {
+	i = 0;
+	while (shell->envp[i])
+	{
 		printf("%s\n", shell->envp[i]);
+		i++;
 	}
+	return (0);
 }
 
-static void handle_export_var(char *arg, t_shell *shell)
+static void	handle_export_var(char *arg, t_shell *shell)
 {
-	if (!is_valid_identifier(arg))
-	{
-		printf("export: '%s': not a valid identifier\n", arg);
-		return;
-	}
-
-	char *equals = strchr(arg, '=');
-	if (equals)
-	{
-		char *new_var = ft_strdup(arg);
-		if (!new_var)
-		{
-			perror("export: malloc error");
-			return;
-		}
-		add_or_update_env(new_var, shell);
-	}
+	if (strchr(arg, '='))
+		add_or_update_env(arg, shell);
 	else
-	{
 		export_existing_var(arg, shell);
-	}
 }
 
-void builtin_export(char **args, t_shell *shell)
+int	builtin_export(char **args, t_shell *shell)
 {
+	int	i;
+
 	if (!args[1])
 	{
 		print_export_format(shell->envp);
-		return;
+		return (0);
 	}
-
-	int i = 1;
+	i = 1;
 	while (args[i])
 	{
 		handle_export_var(args[i], shell);
 		i++;
 	}
+	return (0);
+}
+
+int	builtin_colon(char **args)
+{
+	(void)args;
+	return (0);
+}
+
+void	builtin_exit(char **args)
+{
+	int	exit_code;
+
+	exit_code = 0;
+	if (args[1] != NULL)
+		exit_code = atoi(args[1]);
+	printf("exit\n");
+	exit(exit_code);
 }
