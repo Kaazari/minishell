@@ -1,0 +1,148 @@
+---
+alwaysApply: false
+---
+
+---
+
+description: Cette regles permet de specifier la norme de code imposer pour chaques fichiers C
+globs: \*.c
+alwaysApply: false
+
+---
+
+# Norme 42
+
+Règles de codage à respecter pour les projets de l'École 42. La moindre faute de norme entraîne la note de 0.
+
+## Formatage du code
+
+- Chaque ligne ne peut faire plus de 80 colonnes, commentaires compris. (II.2)
+  @pattern: \*_/_.{c,h}
+
+- Vous devez indenter votre code avec des tabulations de la taille de 4 espaces. (II.2)
+  @pattern: \*_/_.{c,h}
+
+- Chaque fonction doit faire au maximum 25 lignes sans compter les accolades. (II.2)
+  @pattern: \*_/_.c
+
+- Vous ne pouvez pas avoir plus de 5 définitions de fonctions dans un .c. (II.10)
+  @pattern: \*_/_.c
+
+- Chaque virgule ou point-virgule doit être suivi d'un espace si nous ne sommes pas en fin de ligne. (II.2)
+  @pattern: \*_/_.{c,h}
+
+- Chaque opérateur (binaire ou ternaire) et opérandes doivent être séparés par un espace et seulement un. (II.2)
+  @pattern: \*_/_.{c,h}
+
+- Une ligne vide ne doit pas contenir d'espaces ou de tabulations. (II.2)
+  @pattern: \*_/_.{c,h}
+
+- La multiple assignation est interdite. (II.2)
+  @pattern: \*_/_.c
+
+## Conventions de nommage
+
+- Les noms de structures doivent commencer par s\_. (II.1)
+  @pattern: \*_/_.{c,h}
+
+- Les noms de typedef doivent commencer par t\_. (II.1)
+  @pattern: \*_/_.{c,h}
+
+- Les noms d'union doivent commencer par u\_. (II.1)
+  @pattern: \*_/_.{c,h}
+
+- Les noms d'enum doivent commencer par e\_. (II.1)
+  @pattern: \*_/_.{c,h}
+
+- Les noms de variables globales doivent commencer par g\_. (II.1)
+  @pattern: \*_/_.{c,h}
+
+- Les noms doivent être composés exclusivement de minuscules, de chiffres et de '\_' (Unix Case). (II.1)
+  @pattern: \*_/_.{c,h}
+
+## Fonctions
+
+- Une fonction prend au maximum 4 paramètres nommés. (II.3)
+  @pattern: \*_/_.{c,h}
+
+- Une fonction qui ne prend pas d'argument doit explicitement être prototypée avec void. (II.3)
+  @pattern: \*_/_.{c,h}
+
+- Vous ne pouvez déclarer que 5 variables par bloc au maximum. (II.4)
+  @pattern: \*_/_.c
+
+- Les paramètres des prototypes de fonctions doivent être nommés. (II.4)
+  @pattern: \*_/_.h
+
+- Chaque définition de fonction doit être séparée par une ligne vide. (II.4)
+  @pattern: \*_/_.c
+
+- Le retour d'une fonction doit se faire entre parenthèses. (II.4)
+  @pattern: \*_/_.c
+
+## Éléments interdits
+
+- L'utilisation de 'for' est interdite. (II.8)
+  @pattern: \*_/_.c
+
+- L'utilisation de 'do...while' est interdite. (II.8)
+  @pattern: \*_/_.c
+
+- L'utilisation de 'switch' et 'case' est interdite. (II.8)
+  @pattern: \*_/_.c
+
+- L'utilisation de 'goto' est interdite. (II.8)
+  @pattern: \*_/_.c
+
+- Les opérateurs ternaires imbriqués sont interdits. (II.8)
+  @pattern: \*_/_.c
+
+- Les tableaux à taille variable (VLA) sont interdits. (II.8)
+  @pattern: \*_/_.c
+
+## Commentaires
+
+- Les commentaires commençant par // sont interdits. (II.9)
+  @pattern: \*_/_.{c,h}
+
+- Il ne doit pas y avoir de commentaires dans le corps des fonctions. (II.9)
+  @pattern: \*_/_.c
+
+- Les commentaires sont commencés et terminés par une ligne seule. Les lignes intermédiaires s'alignent et commencent par '**'. (II.9)
+  @pattern: **/\*.{c,h}
+
+## Headers
+
+- Les headers doivent être protégés contre la double inclusion. Si le fichier est ft\*foo.h, la macro témoin est FT_FOO_H. (II.6)
+  @pattern: \*\*/\_.h
+
+- Vous ne pouvez pas déclarer une structure dans un fichier .c. (II.5)
+  @pattern: \*_/_.c
+
+- Tous les includes de .h doivent se faire au début du fichier. (II.6)
+  @pattern: \*_/_.{c,h}
+
+- Une inclusion de header (.h) dont on ne se sert pas est interdite. (II.6)
+  @pattern: \*_/_.{c,h}
+
+## Makefile
+
+- Les règles $(NAME), clean, fclean, re et all sont obligatoires. (II.11)
+  @pattern: \*\*/Makefile
+
+- Le projet est considéré comme non fonctionnel si le Makefile relink. (II.11)
+  @pattern: \*\*/Makefile
+
+## Variables
+
+- Les étoiles des pointeurs doivent être collées au nom de la variable. (II.2)
+  @pattern: \*_/_.{c,h}
+
+- Une seule déclaration de variable par ligne. (II.2)
+  @pattern: \*_/_.{c,h}
+
+- On ne peut faire une déclaration et une initialisation sur une même ligne, à l'exception des variables globales et des variables statiques. (II.2)
+  @pattern: \*_/_.c
+
+- Les déclarations doivent être en début de fonction et séparées de l'implémentation par une ligne vide. (II.2)
+  @pattern: \*_/_.c

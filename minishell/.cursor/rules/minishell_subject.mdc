@@ -1,0 +1,178 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+# Chapter III – Mandatory Part
+
+## 🎯 Program Name
+
+```
+minishell
+```
+
+## 📁 Turn-in Files
+
+- `Makefile`
+- `*.h`
+- `*.c`
+
+## 🛠️ Makefile Rules
+
+- `NAME`
+- `all`
+- `clean`
+- `fclean`
+- `re`
+
+## 📥 Arguments
+
+## 🧰 External Functions Autorisées
+
+```c
+readline, rl_clear_history, rl_on_new_line, rl_replace_line, rl_redisplay, add_history,
+printf, malloc, free, write, access, open, read, close,
+fork, wait, waitpid, wait3, wait4, signal, sigaction,
+sigemptyset, sigaddset, kill, exit, getcwd, chdir,
+stat, lstat, fstat, unlink, execve, dup, dup2, pipe,
+opendir, readdir, closedir, strerror, perror, isatty,
+ttyname, ttyslot, ioctl, getenv, tcsetattr, tcgetattr,
+tgetent, tgetflag, tgetnum, tgetstr, tgoto, tputs
+```
+
+## 📚 Libft
+
+**Autorisé :** ✅
+
+---
+
+## 🧾 Description
+
+**Objectif :** Écrire un shell.
+
+---
+
+## ✅ Fonctionnalités Obligatoires
+
+### 🖥️ Interface
+
+- Affiche un **prompt** lorsqu’il attend une commande.
+
+### 🕘 Historique
+
+- Gère un **historique fonctionnel** des commandes.
+
+### 🔎 Exécution
+
+- Recherche et lance le bon exécutable :
+  - Basé sur la variable `PATH`
+  - Ou à l’aide d’un chemin **relatif** ou **absolu**
+
+### 🌐 Variable Globale
+
+- Tu dois utiliser **au plus une seule variable globale** pour indiquer qu’un signal a été reçu.
+- ⚠️ **Attention :** cette variable :
+  - Ne doit contenir **que le numéro du signal**.
+  - **Ne doit jamais** permettre d’accéder à d’autres structures ou de stocker d'autres informations.
+  - L’utilisation de structures de type "norm" (struct globale) est interdite dans le scope global.
+
+---
+
+## ❌ Comportements à éviter
+
+- Ne pas interpréter :
+  - Les **quotes non fermées**
+  - Les caractères spéciaux **non requis** comme :
+    - `\` (backslash)
+    - `;` (point-virgule)
+
+---
+
+## 🧵 Gestion des Quotes
+
+| Type de quote | Comportement attendu                                                  |
+| ------------- | --------------------------------------------------------------------- |
+| `'` (simple)  | Empêche toute interprétation des **métacaractères** dans la séquence. |
+| `"` (double)  | Empêche l’interprétation des métacaractères **sauf `$`**.             |
+
+---
+
+## 🔁 Redirections à implémenter
+
+| Syntaxe | Effet                                                                                                                      |
+| ------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `<`     | Redirige **l’entrée**                                                                                                      |
+| `>`     | Redirige **la sortie**                                                                                                     |
+| `<<`    | Redirige avec un **délimiteur** : lit jusqu’à une ligne contenant ce délimiteur. <br>🚫 **N’ajoute pas** dans l’historique |
+| `>>`    | Redirige la sortie en **mode append**                                                                                      |
+
+---
+
+## 🧪 Pipes
+
+- Gérer le caractère `|` (pipe).
+- La **sortie** de chaque commande est connectée à l’**entrée** de la commande suivante.
+
+---
+
+## 🌱 Variables d’environnement
+
+- Gérer les variables de la forme :
+
+  ```
+  $VAR
+  ```
+
+  → Doivent être **expandées** à leur valeur.
+
+- Gérer également :
+  ```
+  $?
+  ```
+  → Doit être expandé au **code de sortie** de la **dernière commande exécutée au premier plan**.
+
+---
+
+## 🎹 Contrôles clavier
+
+### En mode interactif :
+
+| Touche   | Comportement                                         |
+| -------- | ---------------------------------------------------- |
+| `Ctrl-C` | Affiche un **nouveau prompt sur une nouvelle ligne** |
+| `Ctrl-D` | **Quitte** le shell                                  |
+| `Ctrl-\` | **Ne fait rien**                                     |
+
+---
+
+## 🏗️ Built-in Commands à implémenter
+
+| Commande | Détails                                         |
+| -------- | ----------------------------------------------- |
+| `echo`   | avec l’option `-n`                              |
+| `cd`     | uniquement avec un **chemin relatif ou absolu** |
+| `pwd`    | sans option                                     |
+| `export` | sans option                                     |
+| `unset`  | sans option                                     |
+| `env`    | sans option ni argument                         |
+| `exit`   | sans option                                     |
+
+---
+
+## 🧠 Remarques Importantes
+
+- La fonction `readline()` peut **causer des fuites mémoire**, mais tu **n’es pas obligé** de les corriger.
+- ⚠️ **En revanche, ton propre code ne doit pas avoir de fuites mémoire.**
+
+---
+
+## 🛑 Limitations
+
+Tu dois **te limiter strictement** à ce qui est demandé dans ce sujet.
+
+---
+
+## 🐚 Référence
+
+En cas de doute sur un comportement : **réfère-toi à Bash**.
