@@ -91,7 +91,7 @@ int	update_existing_env_var(char *var, t_shell *shell)
 	{
 		if (ft_strncmp(shell->envp[i], var, var_len) == 0
 			&& (shell->envp[i][var_len] == '='
-				|| shell->envp[i][var_len] == '\0'))
+			|| shell->envp[i][var_len] == '\0'))
 		{
 			free(shell->envp[i]);
 			shell->envp[i] = ft_strdup(var);

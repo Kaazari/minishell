@@ -33,4 +33,8 @@ void	init_pipes(t_pipex *pipex, int cmd_count);
 void	close_pipes(t_pipex *pipex);
 void	wait_children(t_pipex *pipex);
 
+// Pipes utils functions
+int		*allocate_pipe_fds(int pipe_count);
+int		create_pipes(int *pipe_fds, int pipe_count);
+
 #endif

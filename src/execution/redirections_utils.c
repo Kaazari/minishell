@@ -69,7 +69,7 @@ void	handle_output_redirection(t_cmd *cmd, int i)
 
 void	handle_input_redirection(t_cmd *cmd, int i)
 {
-	int fd;
+	int	fd;
 
 	fd = open(cmd->redirs[i].file, O_RDONLY);
 	if (fd != -1)
