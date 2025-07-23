@@ -16,13 +16,15 @@ void	handle_single_command(t_shell *shell, t_cmd **commands)
 {
 	shell->cmd = commands[0];
 	execute_shell_command(commands[0]->args, shell);
-	free(commands);
+	free_cmds(commands);
+	shell->cmd = NULL;
 }
 
 void	handle_piped_commands(t_shell *shell, t_cmd **commands, int count)
 {
 	execute_piped_commands(shell, commands, count);
-	free(commands);
+	free_cmds(commands);
+	shell->cmd = NULL;
 }
 
 void	process_command(t_shell *shell, char *input)

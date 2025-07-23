@@ -44,6 +44,14 @@ static void	cleanup_envp(t_shell *shell)
 		free(shell->local_envp);
 		shell->local_envp = NULL;
 	}
+	if (shell && shell->envp)
+	{
+		tmp = shell->envp;
+		while (*tmp)
+			free(*tmp++);
+		free(shell->envp);
+		shell->envp = NULL;
+	}
 }
 
 void	clean_exit(t_shell *shell, int status)

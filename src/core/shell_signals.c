@@ -16,7 +16,12 @@ void	signal_handler(int signo)
 {
 	g_signal = signo;
 	if (signo == SIGINT)
+	{
+		rl_replace_line("", 0);
+		rl_on_new_line();
+		rl_redisplay();
 		write(STDOUT_FILENO, "\n", 1);
+    }
 }
 
 void	setup_signals(void)

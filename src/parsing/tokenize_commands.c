@@ -23,6 +23,8 @@ static void	process_pipe_command(t_cmd_process *proc, int i)
 	if (!proc->commands[*(proc->cmd_idx)])
 	{
 		free_args(cmd_words);
+		free_partial_cmds(proc->commands, *(proc->cmd_idx));
+		proc->commands = NULL;
 		return ;
 	}
 	process_command_words(proc->commands[*(proc->cmd_idx)], cmd_words);

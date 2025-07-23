@@ -71,11 +71,13 @@ void	execute_piped_commands(t_shell *shell, t_cmd **commands, int cmd_count)
 	i = 0;
 	while (i < cmd_count)
 	{
-		shell->pipex->pid = fork();
-		if (shell->pipex->pid == 0)
-		{
-			setup_child_pipes(shell, i, cmd_count);
-			execute_child_command(shell, commands[i]);
+		if (commands[i] != NULL) {
+			shell->pipex->pid = fork();
+			if (shell->pipex->pid == 0)
+			{
+				setup_child_pipes(shell, i, cmd_count);
+				execute_child_command(shell, commands[i]);
+			}
 		}
 		i++;
 	}

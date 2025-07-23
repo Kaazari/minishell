@@ -139,6 +139,7 @@ char		*get_env_value(char *var, char **envp);
 t_cmd		*create_cmd(void);
 void		add_redirection(t_cmd *cmd, int type, char *file);
 int			get_redirection_type(char *token);
+void free_partial_cmds(t_cmd **cmds, int count);
 
 /* Execution functions */
 void		execute_external_commands(char **args, char **envp, t_shell *shell);
@@ -186,5 +187,8 @@ void		export_existing_var(char *var, t_shell *shell);
 
 /* Memory management functions */
 void		free_cmd(t_cmd *cmd);
+void		free_cmds(t_cmd **cmds);
+void		free_cmds_array(t_cmd ***cmds_array, int count);
+char **dup_envp(char **envp);
 
 #endif

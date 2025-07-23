@@ -49,3 +49,36 @@ void	free_cmd(t_cmd *cmd)
 	}
 	free(cmd);
 }
+
+void	free_cmds(t_cmd **cmds)
+{
+	int i = 0;
+	if (!cmds)
+		return;
+	while (cmds[i])
+	{
+		free_cmd(cmds[i]);
+		i++;
+	}
+	free(cmds);
+}
+
+void free_cmds_array(t_cmd ***cmds_array, int count)
+{
+    int i;
+    if (!cmds_array)
+        return;
+    for (i = 0; i < count; i++)
+        free_cmds(cmds_array[i]);
+    free(cmds_array);
+}
+
+void free_partial_cmds(t_cmd **cmds, int count)
+{
+    int i;
+    if (!cmds)
+        return;
+    for (i = 0; i < count; i++)
+        free_cmd(cmds[i]);
+    free(cmds);
+}

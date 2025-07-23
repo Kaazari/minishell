@@ -81,3 +81,19 @@ void	add_or_update_env(char *var, t_shell *shell)
 		return ;
 	add_new_env_var(var, shell);
 }
+
+char **dup_envp(char **envp)
+{
+    int i, count = 0;
+    char **copy;
+
+    while (envp[count])
+        count++;
+    copy = malloc(sizeof(char *) * (count + 1));
+    if (!copy)
+        return NULL;
+    for (i = 0; i < count; i++)
+        copy[i] = strdup(envp[i]);
+    copy[count] = NULL;
+    return copy;
+}

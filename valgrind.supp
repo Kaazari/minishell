@@ -1,0 +1,189 @@
+{
+   readline_leak
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libreadline*
+}
+{
+   tinfo_leak
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libtinfo*
+}
+{
+   readline_malloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libreadline*
+}
+{
+   readline_realloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libreadline*
+}
+{
+   readline_xrealloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:xrealloc
+   obj:/usr/lib/x86_64-linux-gnu/libreadline*
+}
+{
+   tinfo_malloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libtinfo*
+}
+{
+   tinfo_strdup
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:strdup
+   obj:/usr/lib/x86_64-linux-gnu/libtinfo*
+}
+{
+   tinfo_calloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libtinfo*
+}
+{
+   tinfo_realloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libtinfo*
+}
+{
+   ncurses_malloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libncurses*
+}
+{
+   ncurses_calloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libncurses*
+}
+{
+   ncurses_realloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libncurses*
+}
+{
+   readline_xmalloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:xmalloc
+   obj:/usr/lib/x86_64-linux-gnu/libreadline*
+}
+{
+   readline_rl_make_bare_keymap
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:rl_make_bare_keymap
+   obj:/usr/lib/x86_64-linux-gnu/libreadline*
+}
+{
+   readline_rl_generic_bind
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:rl_generic_bind
+   obj:/usr/lib/x86_64-linux-gnu/libreadline*
+}
+{
+   readline_add_history
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:add_history
+   obj:/usr/lib/x86_64-linux-gnu/libreadline*
+}
+{
+   readline_alloc_history_entry
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:alloc_history_entry
+   obj:/usr/lib/x86_64-linux-gnu/libreadline*
+}
+{
+   readline_rl_initialize
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:rl_initialize
+   obj:/usr/lib/x86_64-linux-gnu/libreadline*
+}
+{
+   tinfo_tsearch
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:tsearch
+   obj:/usr/lib/x86_64-linux-gnu/libtinfo*
+}
+{
+   tinfo__nc_setupterm
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_nc_setupterm
+   obj:/usr/lib/x86_64-linux-gnu/libtinfo*
+}
+{
+   tinfo__nc_read_termtype
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_nc_read_termtype
+   obj:/usr/lib/x86_64-linux-gnu/libtinfo*
+}
+{
+   tinfo__nc_tiparm
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_nc_tiparm
+   obj:/usr/lib/x86_64-linux-gnu/libtinfo*
+}
+{
+   tinfo__nc_trim_sgr0
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_nc_trim_sgr0
+   obj:/usr/lib/x86_64-linux-gnu/libtinfo*
+}
+{
+   tinfo__nc_first_db
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_nc_first_db
+   obj:/usr/lib/x86_64-linux-gnu/libtinfo*
+}
+{
+   tinfo__nc_home_terminfo
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_nc_home_terminfo
+   obj:/usr/lib/x86_64-linux-gnu/libtinfo*
+}
+{
+   tinfo__nc_doalloc
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_nc_doalloc
+   obj:/usr/lib/x86_64-linux-gnu/libtinfo*
+}
+{
+   tinfo__nc_tparm_analyze
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:_nc_tparm_analyze
+   obj:/usr/lib/x86_64-linux-gnu/libtinfo*
+}

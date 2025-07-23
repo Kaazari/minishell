@@ -16,7 +16,7 @@ volatile sig_atomic_t	g_signal = 0;
 
 static void	init_shell(t_shell *shell, char **envp)
 {
-	shell->envp = envp;
+	shell->envp = dup_envp(envp);
 	shell->local_envp = NULL;
 	shell->state = 0;
 	shell->exit_status = 0;
@@ -44,6 +44,8 @@ int	main(int ac, char **av, char **envp)
 	(void)av;
 	setup_signals();
 	init_shell(&shell, envp);
+	free_cmd(shell.cmd); // Libère le t_cmd initial alloué dans init_shell
+	shell.cmd = NULL;
 	main_shell_loop(&shell);
 	return (0);
 }
