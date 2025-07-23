@@ -22,10 +22,12 @@ static int	init_cmd_struct(t_cmd *cmd)
 		cmd->redirs = NULL;
 		return (-1);
 	}
-	// Initialize args array to NULL
-	for (i = 0; i < 64; i++)
+	i = 0;
+	while (i < 64)
+	{
 		cmd->args[i] = NULL;
-
+		i++;
+	}
 	cmd->redirs = malloc(sizeof(t_redir) * 10);
 	if (!cmd->redirs)
 	{

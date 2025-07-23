@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   shell_cleanup.c                                    :+:      :+:    :+:   */
+/*   cleanup_utils.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kclaudan <kclaudan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -11,19 +11,33 @@
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
+#include <termios.h>
+#include <unistd.h>
 
-static void	force_cleanup_env(t_shell *shell)
+void	cleanup_pipex(t_shell *shell)
+{
+	if (shell && shell->pipex)
+	{
+		if (shell->pipex->pipe_fds)
+			free(shell->pipex->pipe_fds);
+		free(shell->pipex);
+		shell->pipex = NULL;
+	}
+}
+
+void	cleanup_cmd(t_shell *shell)
+{
+	if (shell && shell->cmd)
+	{
+		free_cmd(shell->cmd);
+		shell->cmd = NULL;
+	}
+}
+
+void	cleanup_envp(t_shell *shell)
 {
 	char	**tmp;
 
-	if (shell && shell->envp)
-	{
-		tmp = shell->envp;
-		while (*tmp)
-			free(*tmp++);
-		free(shell->envp);
-		shell->envp = NULL;
-	}
 	if (shell && shell->local_envp)
 	{
 		tmp = shell->local_envp;
@@ -32,41 +46,42 @@ static void	force_cleanup_env(t_shell *shell)
 		free(shell->local_envp);
 		shell->local_envp = NULL;
 	}
+	if (shell && shell->envp)
+	{
+		tmp = shell->envp;
+		while (*tmp)
+			free(*tmp++);
+		free(shell->envp);
+		shell->envp = NULL;
+	}
 }
 
-static void	force_cleanup_structures(t_shell *shell)
+void	cleanup_temp_structures(t_shell *shell)
 {
 	if (shell && shell->cmd)
 	{
 		free_cmd(shell->cmd);
 		shell->cmd = NULL;
 	}
-	if (shell && shell->pipex)
+	if (shell && shell->current_commands)
 	{
-		if (shell->pipex->pipe_fds)
-			free(shell->pipex->pipe_fds);
-		free(shell->pipex);
-		shell->pipex = NULL;
+		free_partial_cmds(shell->current_commands, shell->current_cmd_count);
+		shell->current_commands = NULL;
+		shell->current_cmd_count = 0;
 	}
-	cleanup_temp_structures(shell);
 }
 
-static void	force_cleanup(t_shell *shell)
+void	cleanup_terminal_resources(void)
 {
-	force_cleanup_structures(shell);
-	force_cleanup_env(shell);
-}
+	struct termios	term;
 
-void	clean_exit(t_shell *shell, int status)
-{
-	if (shell)
+	rl_clear_history();
+	rl_on_new_line();
+	rl_replace_line("", 0);
+	rl_redisplay();
+	if (tcgetattr(STDIN_FILENO, &term) == 0)
 	{
-		cleanup_pipex(shell);
-		cleanup_cmd(shell);
-		cleanup_envp(shell);
-		force_cleanup(shell);
+		term.c_lflag |= ECHO | ICANON;
+		tcsetattr(STDIN_FILENO, TCSANOW, &term);
 	}
-	clear_history();
-	cleanup_terminal_resources();
-	exit(status);
 }

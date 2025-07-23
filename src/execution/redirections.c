@@ -17,7 +17,7 @@ void	handle_redirections(t_cmd *cmd, t_shell *shell)
 	int	i;
 
 	if (!cmd || !cmd->redirs)
-		return;
+		return ;
 	i = 0;
 	while (i < cmd->redir_count)
 	{

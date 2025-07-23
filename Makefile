@@ -26,8 +26,7 @@ CORE_SRCS = $(SRC_DIR)/core/minishell.c \
 			$(SRC_DIR)/core/shell_execution.c \
 			$(SRC_DIR)/core/shell_commands.c
 
-PARSING_SRCS = $(SRC_DIR)/parsing/tokenize.c \
-			   $(SRC_DIR)/parsing/tokenize_utils.c \
+PARSING_SRCS = $(SRC_DIR)/parsing/tokenize_utils.c \
 			   $(SRC_DIR)/parsing/tokenize_input.c \
 			   $(SRC_DIR)/parsing/tokenize_syntax.c \
 			   $(SRC_DIR)/parsing/tokenize_commands.c \
@@ -44,8 +43,7 @@ EXECUTION_SRCS = $(SRC_DIR)/execution/externals.c \
 				 $(SRC_DIR)/execution/redirections_signals.c \
 				 $(SRC_DIR)/execution/redirections_utils.c
 
-BUILTINS_SRCS = $(SRC_DIR)/builtins/builtin.c \
-				$(SRC_DIR)/builtins/builtin_navigation.c \
+BUILTINS_SRCS = $(SRC_DIR)/builtins/builtin_navigation.c \
 				$(SRC_DIR)/builtins/builtin_env.c \
 				$(SRC_DIR)/builtins/builtin_unset.c \
 				$(SRC_DIR)/builtins/builtin_utils.c
@@ -56,7 +54,8 @@ UTILS_SRCS = $(SRC_DIR)/utils/utils.c \
 			 $(SRC_DIR)/utils/export_utils.c \
 			 $(SRC_DIR)/utils/input_utils.c
 
-MEMORY_SRCS = $(SRC_DIR)/memory/cleaner.c
+MEMORY_SRCS = $(SRC_DIR)/memory/cleaner.c \
+			  $(SRC_DIR)/memory/cleanup_utils.c
 
 PIPEX_SRCS = $(PIPEX_DIR)/pipes.c \
 			 $(PIPEX_DIR)/pipes_utils.c \

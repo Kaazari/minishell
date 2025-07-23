@@ -71,7 +71,8 @@ void	execute_piped_commands(t_shell *shell, t_cmd **commands, int cmd_count)
 	i = 0;
 	while (i < cmd_count)
 	{
-		if (commands[i] != NULL) {
+		if (commands[i] != NULL)
+		{
 			shell->pipex->pid = fork();
 			if (shell->pipex->pid == 0)
 			{

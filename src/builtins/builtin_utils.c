@@ -76,5 +76,5 @@ int	builtin_exit(char **args)
 		else
 			exit_code = ft_atoi(args[1]);
 	}
-	return (exit_code + 1000); // Special code to indicate exit
+	return (exit_code + 1000);
 }

@@ -24,6 +24,25 @@ void	handle_piped_commands(t_shell *shell, t_cmd **commands, int count)
 	free_partial_cmds(commands, count);
 }
 
+static void	handle_commands_execution(t_shell *shell, t_cmd **commands,
+				int cmd_count)
+{
+	shell->current_commands = commands;
+	shell->current_cmd_count = cmd_count;
+	if (cmd_count == 1)
+	{
+		handle_single_command(shell, commands);
+		shell->current_commands = NULL;
+		shell->current_cmd_count = 0;
+	}
+	else
+	{
+		handle_piped_commands(shell, commands, cmd_count);
+		shell->current_commands = NULL;
+		shell->current_cmd_count = 0;
+	}
+}
+
 void	process_command(t_shell *shell, char *input)
 {
 	int		cmd_count;
@@ -37,23 +56,5 @@ void	process_command(t_shell *shell, char *input)
 		free_partial_cmds(commands, cmd_count);
 		return ;
 	}
-
-	// Store commands in shell for cleanup
-	shell->current_commands = commands;
-	shell->current_cmd_count = cmd_count;
-
-	if (cmd_count == 1)
-	{
-		handle_single_command(shell, commands);
-		// Commands are already freed in handle_single_command
-		shell->current_commands = NULL;
-		shell->current_cmd_count = 0;
-	}
-	else
-	{
-		handle_piped_commands(shell, commands, cmd_count);
-		// Commands are already freed in handle_piped_commands
-		shell->current_commands = NULL;
-		shell->current_cmd_count = 0;
-	}
+	handle_commands_execution(shell, commands, cmd_count);
 }

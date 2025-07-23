@@ -6,42 +6,35 @@
 /*   By: kclaudan <kclaudan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/01 00:00:00 by anonymous         #+#    #+#             */
-/*   Updated: 2025/07/17 16:30:30 by kclaudan         ###   ########.fr       */
+/*   Updated: 2025/07/19 18:30:00 by kclaudan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MINISHELL_H
 # define MINISHELL_H
 
-/* System includes */
-# include <dirent.h>
-# include <fcntl.h>
-# include <readline/history.h>
-# include <readline/readline.h>
-# include <signal.h>
 # include <stdio.h>
 # include <stdlib.h>
-# include <string.h>
-# include <sys/stat.h>
-# include <sys/types.h>
-# include <sys/wait.h>
 # include <unistd.h>
-# include <ctype.h>
-
-/* Project includes */
-# include "../libft/libft.h"
+# include <string.h>
+# include <sys/wait.h>
+# include <sys/stat.h>
+# include <fcntl.h>
+# include <signal.h>
+# include <readline/readline.h>
+# include <readline/history.h>
+# include <errno.h>
+# include <termios.h>
 # include "../pipex/pipex.h"
+# include "../libft/libft.h"
 
-/* Constants */
 # define REDIR_IN 1
 # define REDIR_OUT 2
 # define REDIR_APPEND 3
 # define REDIR_HEREDOC 4
 
-/* Global variable for signal handling only */
 extern volatile sig_atomic_t	g_signal;
 
-/* Structures */
 typedef struct s_redir
 {
 	int			type;
@@ -141,7 +134,7 @@ char		*get_env_value(char *var, char **envp);
 t_cmd		*create_cmd(void);
 void		add_redirection(t_cmd *cmd, int type, char *file);
 int			get_redirection_type(char *token);
-void free_partial_cmds(t_cmd **cmds, int count);
+void		free_partial_cmds(t_cmd **cmds, int count);
 
 /* Execution functions */
 void		execute_external_commands(char **args, char **envp, t_shell *shell);
@@ -174,7 +167,7 @@ int			builtin_export(char **args, t_shell *shell);
 int			builtin_unset(char **args, t_shell *shell);
 int			builtin_colon(char **args);
 int			builtin_env(char **args, t_shell *shell);
-int		builtin_exit(char **args);
+int			builtin_exit(char **args);
 int			builtin_echo(char **args);
 
 /* Utility functions */
@@ -191,6 +184,11 @@ void		export_existing_var(char *var, t_shell *shell);
 void		free_cmd(t_cmd *cmd);
 void		free_cmds(t_cmd **cmds);
 void		free_cmds_array(t_cmd ***cmds_array, int count);
-char **dup_envp(char **envp);
+char		**dup_envp(char **envp);
+void		cleanup_pipex(t_shell *shell);
+void		cleanup_cmd(t_shell *shell);
+void		cleanup_envp(t_shell *shell);
+void		cleanup_temp_structures(t_shell *shell);
+void		cleanup_terminal_resources(void);
 
 #endif

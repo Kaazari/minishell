@@ -12,21 +12,6 @@
 
 #include "../../include/minishell.h"
 
-// void free_split(char **split)
-// {
-// 	int i;
-// 	if (!split)
-// 		return ;
-// 	i = 0;
-// 	while (split[i])
-// 	{
-// 		free(split[i]);
-// 		split[i] = NULL;
-// 		i++;
-// 	}
-// 	free(split);
-// }
-
 void	free_cmd(t_cmd *cmd)
 {
 	int	i;
@@ -37,14 +22,20 @@ void	free_cmd(t_cmd *cmd)
 	{
 		i = 0;
 		while (cmd->args[i])
-			free(cmd->args[i++]);
+		{
+			free(cmd->args[i]);
+			i++;
+		}
 		free(cmd->args);
 	}
 	if (cmd->redirs)
 	{
 		i = 0;
 		while (i < cmd->redir_count)
-			free(cmd->redirs[i++].file);
+		{
+			free(cmd->redirs[i].file);
+			i++;
+		}
 		free(cmd->redirs);
 	}
 	free(cmd);
@@ -52,9 +43,11 @@ void	free_cmd(t_cmd *cmd)
 
 void	free_cmds(t_cmd **cmds)
 {
-	int i = 0;
+	int	i;
+
+	i = 0;
 	if (!cmds)
-		return;
+		return ;
 	while (cmds[i])
 	{
 		free_cmd(cmds[i]);
@@ -63,22 +56,32 @@ void	free_cmds(t_cmd **cmds)
 	free(cmds);
 }
 
-void free_cmds_array(t_cmd ***cmds_array, int count)
+void	free_cmds_array(t_cmd ***cmds_array, int count)
 {
-    int i;
-    if (!cmds_array)
-        return;
-    for (i = 0; i < count; i++)
-        free_cmds(cmds_array[i]);
-    free(cmds_array);
+	int	i;
+
+	i = 0;
+	if (!cmds_array)
+		return ;
+	while (i < count)
+	{
+		free_cmds(cmds_array[i]);
+		i++;
+	}
+	free(cmds_array);
 }
 
-void free_partial_cmds(t_cmd **cmds, int count)
+void	free_partial_cmds(t_cmd **cmds, int count)
 {
-    int i;
-    if (!cmds)
-        return;
-    for (i = 0; i < count && cmds[i]; i++)
-        free_cmd(cmds[i]);
-    free(cmds);
+	int	i;
+
+	i = 0;
+	if (!cmds)
+		return ;
+	while (i < count && cmds[i])
+	{
+		free_cmd(cmds[i]);
+		i++;
+	}
+	free(cmds);
 }

@@ -17,7 +17,7 @@ char	*check_absolute_path(char *command)
 	if (command[0] == '/' || command[0] == '.')
 	{
 		if (access(command, X_OK) == 0)
-			return (ft_strdup(command));
+			return (strdup(command));
 		return (NULL);
 	}
 	return (NULL);
