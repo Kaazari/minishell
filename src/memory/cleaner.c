@@ -78,7 +78,7 @@ void free_partial_cmds(t_cmd **cmds, int count)
     int i;
     if (!cmds)
         return;
-    for (i = 0; i < count; i++)
+    for (i = 0; i < count && cmds[i]; i++)
         free_cmd(cmds[i]);
     free(cmds);
 }

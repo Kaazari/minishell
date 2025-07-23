@@ -93,7 +93,7 @@ char **dup_envp(char **envp)
     if (!copy)
         return NULL;
     for (i = 0; i < count; i++)
-        copy[i] = strdup(envp[i]);
+        copy[i] = ft_strdup(envp[i]);
     copy[count] = NULL;
     return copy;
 }

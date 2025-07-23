@@ -14,6 +14,8 @@
 
 static void	execute_builtin_command(char **args, t_shell *shell)
 {
+	int	result;
+
 	if (strcmp(args[0], "cd") == 0)
 		shell->exit_status = builtin_cd(args, shell);
 	else if (strcmp(args[0], "pwd") == 0)
@@ -27,7 +29,20 @@ static void	execute_builtin_command(char **args, t_shell *shell)
 	else if (strcmp(args[0], "unset") == 0)
 		shell->exit_status = builtin_unset(args, shell);
 	else if (strcmp(args[0], "exit") == 0)
-		builtin_exit(args);
+	{
+		result = builtin_exit(args);
+		if (result >= 1000) // Special exit code
+		{
+			shell->exit_status = result - 1000;
+			// Free the current command before exit
+			if (shell->cmd)
+			{
+				free_cmd(shell->cmd);
+				shell->cmd = NULL;
+			}
+			clean_exit(shell, shell->exit_status);
+		}
+	}
 	else if (strcmp(args[0], ":") == 0)
 		shell->exit_status = builtin_colon(args);
 	else

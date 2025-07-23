@@ -27,13 +27,9 @@ static void	init_shell(t_shell *shell, char **envp)
 		exit(1);
 	}
 	shell->pipex->pipe_fds = NULL;
-	shell->cmd = create_cmd();
-	if (!shell->cmd)
-	{
-		free(shell->pipex);
-		printf("Error: Failed to allocate memory for cmd\n");
-		exit(1);
-	}
+	shell->cmd = NULL;
+	shell->current_commands = NULL;
+	shell->current_cmd_count = 0;
 }
 
 int	main(int ac, char **av, char **envp)
@@ -44,8 +40,7 @@ int	main(int ac, char **av, char **envp)
 	(void)av;
 	setup_signals();
 	init_shell(&shell, envp);
-	free_cmd(shell.cmd); // Libère le t_cmd initial alloué dans init_shell
-	shell.cmd = NULL;
 	main_shell_loop(&shell);
+	clean_exit(&shell, 0);
 	return (0);
 }

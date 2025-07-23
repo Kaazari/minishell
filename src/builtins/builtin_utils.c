@@ -60,7 +60,7 @@ static int	is_numeric(char *str)
 	return (1);
 }
 
-void	builtin_exit(char **args)
+int	builtin_exit(char **args)
 {
 	int	exit_code;
 
@@ -76,5 +76,5 @@ void	builtin_exit(char **args)
 		else
 			exit_code = ft_atoi(args[1]);
 	}
-	exit(exit_code);
+	return (exit_code + 1000); // Special code to indicate exit
 }

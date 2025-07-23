@@ -28,6 +28,8 @@ void	restore_redirections(t_cmd *cmd)
 {
 	int	i;
 
+	if (!cmd || !cmd->redirs)
+		return ;
 	i = 0;
 	while (i < cmd->redir_count)
 	{
@@ -40,7 +42,8 @@ void	restore_redirections(t_cmd *cmd)
 		{
 			restore_input_redirection(cmd, i);
 		}
-		free(cmd->redirs[i].file);
+		if (cmd->redirs[i].file)
+			free(cmd->redirs[i].file);
 		i++;
 	}
 	cmd->redir_count = 0;

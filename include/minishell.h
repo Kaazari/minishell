@@ -29,8 +29,8 @@
 # include <ctype.h>
 
 /* Project includes */
-# include "libft.h"
-# include "pipex.h"
+# include "../libft/libft.h"
+# include "../pipex/pipex.h"
 
 /* Constants */
 # define REDIR_IN 1
@@ -66,6 +66,8 @@ typedef struct s_shell
 	t_pipex		*pipex;
 	int			state;
 	int			exit_status;
+	t_cmd		**current_commands;
+	int			current_cmd_count;
 }				t_shell;
 
 typedef struct s_token_data
@@ -172,7 +174,7 @@ int			builtin_export(char **args, t_shell *shell);
 int			builtin_unset(char **args, t_shell *shell);
 int			builtin_colon(char **args);
 int			builtin_env(char **args, t_shell *shell);
-void		builtin_exit(char **args);
+int		builtin_exit(char **args);
 int			builtin_echo(char **args);
 
 /* Utility functions */

@@ -23,7 +23,7 @@ char	**create_cmd_words(char **words, int start, int end)
 	j = 0;
 	while (start < end)
 	{
-		cmd_words[j] = strdup(words[start]);
+		cmd_words[j] = ft_strdup(words[start]);
 		if (!cmd_words[j])
 		{
 			while (j > 0)

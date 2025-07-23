@@ -14,12 +14,18 @@
 
 static int	init_cmd_struct(t_cmd *cmd)
 {
+	int	i;
+
 	cmd->args = malloc(sizeof(char *) * 64);
 	if (!cmd->args)
 	{
 		cmd->redirs = NULL;
 		return (-1);
 	}
+	// Initialize args array to NULL
+	for (i = 0; i < 64; i++)
+		cmd->args[i] = NULL;
+
 	cmd->redirs = malloc(sizeof(t_redir) * 10);
 	if (!cmd->redirs)
 	{

@@ -76,7 +76,10 @@ t_cmd	**tokenize_piped_commands(char *input, int *cmd_count, t_shell *shell)
 	}
 	commands = init_commands_array(words);
 	if (!commands)
+	{
+		free_args(words);
 		return (NULL);
+	}
 	*cmd_count = 1;
 	process_pipe_tokens(words, commands, cmd_count);
 	free_args(words);
