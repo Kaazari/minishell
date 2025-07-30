@@ -12,30 +12,16 @@
 
 #include "../../include/minishell.h"
 
-static void	handle_signal_in_main(t_shell *shell)
-{
-	if (g_signal == SIGINT)
-	{
-		if (shell->state == 3)
-		{
-			shell->state = 1;
-		}
-		else
-		{
-			shell->state = 1;
-		}
-		g_signal = 0;
-	}
-}
-
 static int	handle_input_processing(t_shell *shell, char *input)
 {
-	if (shell->state == 1)
+	if (g_signal_exit_status == 130)
 	{
+		shell->exit_status = 130;
+		g_signal_exit_status = 0;
 		free(input);
 		return (1);
 	}
-	if (strlen(input) > 0)
+	if (ft_strlen(input) > 0)
 		add_history(input);
 	if (process_empty_input(input))
 	{
@@ -51,12 +37,18 @@ void	main_shell_loop(t_shell *shell)
 
 	while (1)
 	{
-		handle_signal_in_main(shell);
-		shell->state = 0;
 		input = readline("minishell> ");
+		if (g_signal_exit_status != 0 && g_signal_exit_status != 999)
+		{
+			shell->exit_status = g_signal_exit_status;
+			g_signal_exit_status = 0;
+		}
+		else if (g_signal_exit_status == 999)
+		{
+			g_signal_exit_status = 0;
+		}
 		if (!input)
 			clean_exit(shell, 0);
-		handle_signal_in_main(shell);
 		if (handle_input_processing(shell, input))
 			continue ;
 		process_command(shell, input);

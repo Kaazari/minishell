@@ -54,22 +54,19 @@ void	cleanup_envp(t_shell *shell)
 		free(shell->envp);
 		shell->envp = NULL;
 	}
+	if (shell && shell->pwd)
+	{
+		free(shell->pwd);
+		shell->pwd = NULL;
+	}
+	if (shell && shell->oldpwd)
+	{
+		free(shell->oldpwd);
+		shell->oldpwd = NULL;
+	}
 }
 
-void	cleanup_temp_structures(t_shell *shell)
-{
-	if (shell && shell->cmd)
-	{
-		free_cmd(shell->cmd);
-		shell->cmd = NULL;
-	}
-	if (shell && shell->current_commands)
-	{
-		free_partial_cmds(shell->current_commands, shell->current_cmd_count);
-		shell->current_commands = NULL;
-		shell->current_cmd_count = 0;
-	}
-}
+
 
 void	cleanup_terminal_resources(void)
 {

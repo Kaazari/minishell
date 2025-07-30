@@ -38,6 +38,7 @@ static int	init_cmd_struct(t_cmd *cmd)
 	cmd->redir_count = 0;
 	cmd->stdin_backup = -1;
 	cmd->stdout_backup = -1;
+	cmd->logical_operator = 0;
 	return (0);
 }
 

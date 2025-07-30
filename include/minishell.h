@@ -34,12 +34,14 @@
 # define REDIR_HEREDOC 4
 
 extern volatile sig_atomic_t	g_signal;
+extern int	g_signal_exit_status;
 
 typedef struct s_redir
 {
 	int			type;
 	char		*file;
 	int			fd;
+	int			is_heredoc_fd;
 }				t_redir;
 
 typedef struct s_cmd
@@ -49,6 +51,7 @@ typedef struct s_cmd
 	int			redir_count;
 	int			stdin_backup;
 	int			stdout_backup;
+	int			logical_operator; /* 0=none, 1=||, 2=&& */
 }				t_cmd;
 
 typedef struct s_shell
@@ -61,6 +64,8 @@ typedef struct s_shell
 	int			exit_status;
 	t_cmd		**current_commands;
 	int			current_cmd_count;
+	char		*pwd;
+	char		*oldpwd;
 }				t_shell;
 
 typedef struct s_token_data
@@ -99,13 +104,15 @@ typedef struct s_tokenize_init
 /* Function prototypes - organized by modules */
 
 /* Core functions */
-void		execute_shell_command(char **args, t_shell *shell);
+void		execute_shell_command(char **args, t_shell *shell, int cmd_count);
 void		clean_exit(t_shell *shell, int status);
 void		signal_handler(int signo);
 void		setup_signals(void);
+
 void		main_shell_loop(t_shell *shell);
 int			process_empty_input(char *input);
 void		handle_single_command(t_shell *shell, t_cmd **commands);
+void		handle_logical_commands(t_shell *shell, t_cmd **commands, int count);
 void		handle_piped_commands(t_shell *shell, t_cmd **commands, int count);
 void		process_command(t_shell *shell, char *input);
 
@@ -122,6 +129,7 @@ void		process_input_chars(char *input, t_token_data *data,
 				char *quote_state, t_shell *shell);
 void		handle_redirection_token(t_token_data *data, char *input, int *i);
 void		handle_pipe_token(t_token_data *data, int *i);
+void		handle_logical_token(t_token_data *data, char *input, int *i);
 void		handle_separator_token(t_token_data *data, int *i);
 int			check_syntax_errors(char **words);
 int			add_variable_to_word(t_var_expansion *var_exp, t_shell *shell);
@@ -147,6 +155,9 @@ void		handle_redirections(t_cmd *cmd, t_shell *shell);
 void		handle_output_redirection(t_cmd *cmd, int i);
 void		handle_input_redirection(t_cmd *cmd, int i);
 void		handle_heredoc(t_cmd *cmd, int i, t_shell *shell);
+int			has_heredoc(t_cmd *cmd);
+int			preprocess_all_heredocs(t_shell *shell, t_cmd **commands, int cmd_count);
+void		close_parent_heredoc_fds(t_cmd **commands, int cmd_count);
 void		setup_heredoc_signals(void);
 void		restore_main_signals(void);
 void		restore_redirections(t_cmd *cmd);
@@ -161,14 +172,13 @@ int			*allocate_pipe_fds(int pipe_count);
 int			create_pipes(int *pipe_fds, int pipe_count);
 
 /* Built-in functions */
+int			builtin_echo(char **args, t_shell *shell);
 int			builtin_cd(char **args, t_shell *shell);
-int			builtin_pwd(char **args);
+int			builtin_pwd(t_shell *shell);
 int			builtin_export(char **args, t_shell *shell);
 int			builtin_unset(char **args, t_shell *shell);
-int			builtin_colon(char **args);
-int			builtin_env(char **args, t_shell *shell);
-int			builtin_exit(char **args);
-int			builtin_echo(char **args);
+int			builtin_env(t_shell *shell);
+int			builtin_exit(char **args, t_shell *shell);
 
 /* Utility functions */
 char		*find_command_in_path(char *command);
@@ -183,12 +193,16 @@ void		export_existing_var(char *var, t_shell *shell);
 /* Memory management functions */
 void		free_cmd(t_cmd *cmd);
 void		free_cmds(t_cmd **cmds);
-void		free_cmds_array(t_cmd ***cmds_array, int count);
+
 char		**dup_envp(char **envp);
 void		cleanup_pipex(t_shell *shell);
 void		cleanup_cmd(t_shell *shell);
 void		cleanup_envp(t_shell *shell);
-void		cleanup_temp_structures(t_shell *shell);
+
 void		cleanup_terminal_resources(void);
+
+char		*ft_strjoin_gnl(char *s1, char *s2);
+char		*ft_strchr_gnl(const char *s, int c);
+char		*get_next_line(int fd);
 
 #endif

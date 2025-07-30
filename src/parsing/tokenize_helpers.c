@@ -15,7 +15,7 @@
 int	is_separator(char c)
 {
 	return (c == ' ' || c == '\t' || c == '\n' || c == '|' || c == '>'
-		|| c == '<');
+		|| c == '<' || c == '&');
 }
 
 int	is_quote(char c)
@@ -43,6 +43,7 @@ void	add_char_to_word(char *word, int *pos, char c)
 void	save_word(char **words, int *count, char *word, int len)
 {
 	char	*word_copy;
+	int		i;
 
 	if (len == 0)
 		return ;
@@ -51,6 +52,27 @@ void	save_word(char **words, int *count, char *word, int len)
 		return ;
 	strncpy(word_copy, word, len);
 	word_copy[len] = '\0';
+	/* Check if the word is empty after copying */
+	i = 0;
+	while (i < len && (word_copy[i] == ' ' || word_copy[i] == '\t' ||
+		   word_copy[i] == '\n' || word_copy[i] == '\r'))
+		i++;
+	if (i == len)
+	{
+		free(word_copy);
+		return ;
+	}
+	/* Check if the word is just quotes */
+	if (len == 2 && word_copy[0] == '"' && word_copy[1] == '"')
+	{
+		free(word_copy);
+		return ;
+	}
+	if (len == 2 && word_copy[0] == '\'' && word_copy[1] == '\'')
+	{
+		free(word_copy);
+		return ;
+	}
 	words[*count] = word_copy;
 	(*count)++;
 }

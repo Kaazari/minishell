@@ -33,6 +33,28 @@ static void	process_pipe_command(t_cmd_process *proc, int i)
 	(*(proc->cmd_idx))++;
 }
 
+static void	process_logical_command(t_cmd_process *proc, int i, int operator)
+{
+	char	**cmd_words;
+
+	cmd_words = create_cmd_words(proc->words, *(proc->start), i);
+	if (!cmd_words)
+		return ;
+	proc->commands[*(proc->cmd_idx)] = create_cmd();
+	if (!proc->commands[*(proc->cmd_idx)])
+	{
+		free_args(cmd_words);
+		free_partial_cmds(proc->commands, *(proc->cmd_idx));
+		proc->commands = NULL;
+		return ;
+	}
+	process_command_words(proc->commands[*(proc->cmd_idx)], cmd_words);
+	proc->commands[*(proc->cmd_idx)]->logical_operator = operator;
+	free_args(cmd_words);
+	*(proc->start) = i + 1;
+	(*(proc->cmd_idx))++;
+}
+
 static void	process_pipe_tokens(char **words, t_cmd **commands, int *cmd_count)
 {
 	int				i;
@@ -53,6 +75,16 @@ static void	process_pipe_tokens(char **words, t_cmd **commands, int *cmd_count)
 		if (words[i][0] == '|' && words[i][1] == '\0')
 		{
 			process_pipe_command(&proc, i);
+			(*cmd_count)++;
+		}
+		else if (ft_strncmp(words[i], "||", 2) == 0)
+		{
+			process_logical_command(&proc, i, 1);
+			(*cmd_count)++;
+		}
+		else if (ft_strncmp(words[i], "&&", 2) == 0)
+		{
+			process_logical_command(&proc, i, 2);
 			(*cmd_count)++;
 		}
 		i++;

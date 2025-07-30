@@ -31,7 +31,7 @@ typedef struct s_pipex
 // Pipes functions
 void	init_pipes(t_pipex *pipex, int cmd_count);
 void	close_pipes(t_pipex *pipex);
-void	wait_children(t_pipex *pipex);
+void	wait_children(t_pipex *pipex, pid_t *child_pids);
 
 // Pipes utils functions
 int		*allocate_pipe_fds(int pipe_count);

@@ -13,6 +13,7 @@
 #include "../../include/minishell.h"
 
 volatile sig_atomic_t	g_signal = 0;
+int	g_signal_exit_status = 0;
 
 static void	init_shell(t_shell *shell, char **envp)
 {
@@ -30,6 +31,8 @@ static void	init_shell(t_shell *shell, char **envp)
 	shell->cmd = NULL;
 	shell->current_commands = NULL;
 	shell->current_cmd_count = 0;
+	shell->pwd = getcwd(NULL, 0);
+	shell->oldpwd = NULL;
 }
 
 int	main(int ac, char **av, char **envp)

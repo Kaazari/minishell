@@ -12,11 +12,10 @@
 
 #include "../../include/minishell.h"
 
-int	builtin_env(char **args, t_shell *shell)
+int	builtin_env(t_shell *shell)
 {
 	int	i;
 
-	(void)args;
 	i = 0;
 	while (shell->envp[i])
 	{
@@ -31,7 +30,11 @@ static void	handle_export_var(char *arg, t_shell *shell)
 	if (strchr(arg, '='))
 		add_or_update_env(arg, shell);
 	else
-		export_existing_var(arg, shell);
+	{
+		/* Only export existing variables, don't add new ones without value */
+		if (getenv(arg))
+			export_existing_var(arg, shell);
+	}
 }
 
 int	builtin_export(char **args, t_shell *shell)

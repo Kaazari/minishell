@@ -12,35 +12,50 @@
 
 #include "../../include/minishell.h"
 
-int	builtin_echo(char **args)
+static int	is_n_option(char *arg)
 {
 	int	i;
-	int	nline;
 
+	if (!arg || arg[0] != '-')
+		return (0);
 	i = 1;
-	nline = 1;
-	if (args[1] && strcmp(args[1], "-n") == 0)
+	if (!arg[1])
+		return (0);
+	while (arg[i])
 	{
-		nline = 0;
-		i = 2;
+		if (arg[i] != 'n')
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+int	builtin_echo(char **args, t_shell *shell)
+{
+	int	i;
+	int	newline;
+
+	(void)shell;
+	i = 1;
+	newline = 1;
+	while (args[i] && is_n_option(args[i]))
+	{
+		newline = 0;
+		i++;
 	}
 	while (args[i])
 	{
-		write(STDOUT_FILENO, args[i], strlen(args[i]));
-		if (args[i + 1])
-			write(STDOUT_FILENO, " ", 1);
+		write(STDOUT_FILENO, args[i], ft_strlen(args[i]));
 		i++;
+		if (args[i])
+			write(STDOUT_FILENO, " ", 1);
 	}
-	if (nline)
+	if (newline == 1)
 		write(STDOUT_FILENO, "\n", 1);
 	return (0);
 }
 
-int	builtin_colon(char **args)
-{
-	(void)args;
-	return (0);
-}
+
 
 static int	is_numeric(char *str)
 {
@@ -60,10 +75,24 @@ static int	is_numeric(char *str)
 	return (1);
 }
 
-int	builtin_exit(char **args)
+static int	handle_exit_value(char *arg)
+{
+	long long	value;
+
+	value = ft_atoi(arg);
+	if (value > 255)
+		return (255);
+	else if (value < 0)
+		return (256 + (value % 256));
+	else
+		return ((int)value);
+}
+
+int	builtin_exit(char **args, t_shell *shell)
 {
 	int	exit_code;
 
+	(void)shell;
 	exit_code = 0;
 	printf("exit\n");
 	if (args[1] != NULL)
@@ -74,7 +103,7 @@ int	builtin_exit(char **args)
 			exit_code = 255;
 		}
 		else
-			exit_code = ft_atoi(args[1]);
+			exit_code = handle_exit_value(args[1]);
 	}
 	return (exit_code + 1000);
 }

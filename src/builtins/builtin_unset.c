@@ -29,10 +29,10 @@ static void	unset_single_var(char *var_name, t_shell *shell)
 	int	len;
 
 	j = 0;
-	len = strlen(var_name);
+	len = ft_strlen(var_name);
 	while (shell->envp[j])
 	{
-		if (strncmp(shell->envp[j], var_name, len) == 0
+		if (ft_strncmp(shell->envp[j], var_name, len) == 0
 			&& (shell->envp[j][len] == '=' || shell->envp[j][len] == '\0'))
 		{
 			remove_env_var(shell, j);

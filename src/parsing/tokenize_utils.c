@@ -51,6 +51,28 @@ void	handle_pipe_token(t_token_data *data, int *i)
 	(*i)++;
 }
 
+void	handle_logical_token(t_token_data *data, char *input, int *i)
+{
+	if (*(data->word_pos) > 0)
+	{
+		save_word(data->words, data->word_count, data->current_word,
+			*(data->word_pos));
+		*(data->word_pos) = 0;
+	}
+	if (input[*i] == '|' && input[*i + 1] == '|')
+	{
+		ft_strlcpy(data->current_word, "||", 3);
+		save_word(data->words, data->word_count, data->current_word, 2);
+		*i += 2;
+	}
+	else if (input[*i] == '&' && input[*i + 1] == '&')
+	{
+		ft_strlcpy(data->current_word, "&&", 3);
+		save_word(data->words, data->word_count, data->current_word, 2);
+		*i += 2;
+	}
+}
+
 void	handle_separator_token(t_token_data *data, int *i)
 {
 	if (*(data->word_pos) > 0)

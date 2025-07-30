@@ -19,10 +19,10 @@ char	*get_env_value(char *var, char **envp)
 	char	*value;
 
 	i = 0;
-	len = strlen(var);
+	len = ft_strlen(var);
 	while (envp[i])
 	{
-		if (strncmp(envp[i], var, len) == 0 && envp[i][len] == '=')
+		if (ft_strncmp(envp[i], var, len) == 0 && envp[i][len] == '=')
 		{
 			value = envp[i] + len + 1;
 			return (value);
@@ -37,8 +37,8 @@ static int	handle_exit_status(char *word, int *pos, t_shell *shell)
 	char	exit_str[12];
 
 	sprintf(exit_str, "%d", shell->exit_status);
-	strcpy(word + *pos, exit_str);
-	*pos += strlen(exit_str);
+	ft_strlcpy(word + *pos, exit_str, ft_strlen(exit_str) + 1);
+	*pos += ft_strlen(exit_str);
 	return (0);
 }
 
@@ -57,7 +57,7 @@ static int	extract_variable_name(t_var_expansion *var_exp, char **var_name)
 	*var_name = malloc(end - start + 1);
 	if (!*var_name)
 		return (-1);
-	strncpy(*var_name, var_exp->input + start, end - start);
+	ft_strlcpy(*var_name, var_exp->input + start, end - start + 1);
 	(*var_name)[end - start] = '\0';
 	return (end - 1);
 }
@@ -66,8 +66,8 @@ static void	insert_variable_value(t_var_expansion *var_exp, char *var_value)
 {
 	if (var_value)
 	{
-		strcpy(var_exp->word + *(var_exp->pos), var_value);
-		*(var_exp->pos) += strlen(var_value);
+			ft_strlcpy(var_exp->word + *(var_exp->pos), var_value, ft_strlen(var_value) + 1);
+	*(var_exp->pos) += ft_strlen(var_value);
 	}
 }
 

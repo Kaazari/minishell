@@ -46,18 +46,36 @@ int	create_pipes(int *pipe_fds, int pipe_count)
 
 void	setup_child_pipes(t_shell *shell, int i, int cmd_count)
 {
+	int	j;
+	int	in = -1;
+	int	out = -1;
+
 	if (i > 0 && shell->pipex->pipe_fds)
-		dup2(shell->pipex->pipe_fds[2 * (i - 1)], STDIN_FILENO);
+	{
+		in = shell->pipex->pipe_fds[2 * (i - 1) + 1];
+		dup2(in, STDIN_FILENO);
+		close(in);
+	}
 	if (i < cmd_count - 1 && shell->pipex->pipe_fds)
-		dup2(shell->pipex->pipe_fds[2 * i + 1], STDOUT_FILENO);
-	close_pipes(shell->pipex);
+	{
+		out = shell->pipex->pipe_fds[2 * i];
+		dup2(out, STDOUT_FILENO);
+		close(out);
+	}
+	if (shell->pipex->pipe_fds)
+	{
+		j = 0;
+		while (j < 2 * shell->pipex->pipe_count)
+		{
+			close(shell->pipex->pipe_fds[j]);
+			j++;
+		}
+	}
 }
 
 void	execute_child_command(t_shell *shell, t_cmd *command)
 {
 	shell->cmd = command;
-	handle_redirections(command, shell);
-	execute_shell_command(command->args, shell);
-	restore_redirections(command);
+	execute_shell_command(command->args, shell, 1);
 	exit(0);
 }

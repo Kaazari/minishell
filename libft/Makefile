@@ -46,26 +46,30 @@ CC				=	gcc
 RM				=	rm -f
 CFLAGS			=	-Wall -Wextra -Werror -I.
 
+# Règle pour compiler les .c en .o sans affichage
+%.o: %.c
+	@$(CC) $(CFLAGS) -c $< -o $@
+
 NAME			=	libft.a
 
 all:			$(NAME)
 
 $(NAME):		$(OBJS) $(BONUS_OBJS)
-				ar rcs $(NAME) $(OBJS) $(BONUS_OBJS)
+				@ar rcs $(NAME) $(OBJS) $(BONUS_OBJS)
 
 # so:
 # 	$(CC) -nostartfiles -fPIC $(CFLAGS) $(SRCS) $(BONUS)
 # 	gcc -nostartfiles -shared -o libft.so $(OBJS) $(BONUS_OBJS)
 
 clean:
-				$(RM) $(OBJS) $(BONUS_OBJS)
+				@$(RM) $(OBJS) $(BONUS_OBJS)
 
 fclean:			clean
-				$(RM) $(NAME)
+				@$(RM) $(NAME)
 
 re:				fclean $(NAME)
 
 bonus:			$(OBJS) $(BONUS_OBJS)
-				ar rcs $(NAME) $(OBJS) $(BONUS_OBJS)
+				@ar rcs $(NAME) $(OBJS) $(BONUS_OBJS)
 
 .PHONY:			all clean fclean re bonus

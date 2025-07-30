@@ -56,20 +56,7 @@ void	free_cmds(t_cmd **cmds)
 	free(cmds);
 }
 
-void	free_cmds_array(t_cmd ***cmds_array, int count)
-{
-	int	i;
 
-	i = 0;
-	if (!cmds_array)
-		return ;
-	while (i < count)
-	{
-		free_cmds(cmds_array[i]);
-		i++;
-	}
-	free(cmds_array);
-}
 
 void	free_partial_cmds(t_cmd **cmds, int count)
 {

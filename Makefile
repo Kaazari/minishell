@@ -52,7 +52,9 @@ UTILS_SRCS = $(SRC_DIR)/utils/utils.c \
 			 $(SRC_DIR)/utils/utils2.c \
 			 $(SRC_DIR)/utils/env_utils.c \
 			 $(SRC_DIR)/utils/export_utils.c \
-			 $(SRC_DIR)/utils/input_utils.c
+			 $(SRC_DIR)/utils/input_utils.c \
+			 $(SRC_DIR)/utils/get_next_line.c \
+			 $(SRC_DIR)/utils/get_next_line_utils.c
 
 MEMORY_SRCS = $(SRC_DIR)/memory/cleaner.c \
 			  $(SRC_DIR)/memory/cleanup_utils.c
@@ -72,21 +74,26 @@ LIBFT = $(LIBFT_DIR)/libft.a
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -g -g3 -I$(INCLUDE_DIR) -I$(LIBFT_DIR) -I$(PIPEX_DIR)
 
+# Règle pour compiler les .c en .o sans affichage
+%.o: %.c
+	@$(CC) $(CFLAGS) -c $< -o $@
+
 all: $(NAME)
 
 $(NAME): $(OBJS) $(LIBFT)
-	$(CC) $(CFLAGS) -o $(NAME) $(OBJS) $(LIBFT) -lreadline
+	@$(CC) $(CFLAGS) -o $(NAME) $(OBJS) $(LIBFT) -lreadline
+	@echo "minishell ready"
 
 $(LIBFT):
-	make -C $(LIBFT_DIR)
+	@make -C $(LIBFT_DIR)
 
 clean:
-	rm -f $(OBJS)
-	make -C $(LIBFT_DIR) clean
+	@rm -f $(OBJS)
+	@make -C $(LIBFT_DIR) clean
 
 fclean: clean
-	rm -f $(NAME)
-	make -C $(LIBFT_DIR) fclean
+	@rm -f $(NAME)
+	@make -C $(LIBFT_DIR) fclean
 
 re: fclean all
 

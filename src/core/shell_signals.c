@@ -17,10 +17,21 @@ void	signal_handler(int signo)
 	g_signal = signo;
 	if (signo == SIGINT)
 	{
+		if (g_signal_exit_status == 999)
+			return ;
+		g_signal_exit_status = 130;
 		write(STDOUT_FILENO, "\n", 1);
 		rl_replace_line("", 0);
 		rl_on_new_line();
-		rl_redisplay();
+		/* Only redisplay if we're not in a child process */
+		if (g_signal_exit_status != 999)
+			rl_redisplay();
+	}
+	else if (signo == SIGQUIT)
+	{
+		if (g_signal_exit_status == 999)
+			return ;
+		g_signal_exit_status = 131;
 	}
 }
 
@@ -35,3 +46,5 @@ void	setup_signals(void)
 	sa.sa_handler = SIG_IGN;
 	sigaction(SIGQUIT, &sa, NULL);
 }
+
+

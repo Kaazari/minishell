@@ -17,7 +17,7 @@ int	process_empty_input(char *input)
 	int	i;
 
 	i = 0;
-	if (strlen(input) == 0)
+	if (ft_strlen(input) == 0)
 		return (1);
 	while (input[i])
 	{

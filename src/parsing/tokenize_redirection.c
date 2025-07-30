@@ -22,6 +22,7 @@ void	add_redirection(t_cmd *cmd, int type, char *file)
 	(cmd->redirs + cmd->redir_count)->type = type;
 	(cmd->redirs + cmd->redir_count)->file = file_copy;
 	(cmd->redirs + cmd->redir_count)->fd = -1;
+	(cmd->redirs + cmd->redir_count)->is_heredoc_fd = -1;
 	cmd->redir_count++;
 }
 

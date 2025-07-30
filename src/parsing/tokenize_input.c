@@ -25,34 +25,36 @@ static void	handle_variable_expansion(char *input, int *i, t_token_data *data,
 	(*i)++;
 }
 
-static void	handle_quote_processing(char input_char, char *quote_state, int *i)
-{
-	*quote_state = update_quote_state(input_char, *quote_state);
-	(*i)++;
-}
-
 static void	handle_special_chars(char *input, int *i, t_token_data *data,
 		char quote_state)
 {
 	if ((input[*i] == '>' || input[*i] == '<') && !quote_state)
 		handle_redirection_token(data, input, i);
+	else if (input[*i] == '|' && input[*i + 1] == '|' && !quote_state)
+		handle_logical_token(data, input, i);
+	else if (input[*i] == '&' && input[*i + 1] == '&' && !quote_state)
+		handle_logical_token(data, input, i);
 	else if (input[*i] == '|' && !quote_state)
 		handle_pipe_token(data, i);
 	else if (is_separator(input[*i]) && !quote_state)
 		handle_separator_token(data, i);
-	else
+	else if (!is_quote(input[*i]))
 	{
 		add_char_to_word(data->current_word, data->word_pos, input[*i]);
 		(*i)++;
 	}
+	else
+		(*i)++;
 }
 
 void	process_input_chars(char *input, t_token_data *data, char *quote_state,
 		t_shell *shell)
 {
 	int	i;
+	int	quote_start;
 
 	i = 0;
+	quote_start = -1;
 	while (input[i])
 	{
 		if (input[i] == '$' && *quote_state != '\'')
@@ -62,9 +64,53 @@ void	process_input_chars(char *input, t_token_data *data, char *quote_state,
 		}
 		if (is_quote(input[i]))
 		{
-			handle_quote_processing(input[i], quote_state, &i);
+			if (*quote_state == 0)
+			{
+				*quote_state = input[i];
+				quote_start = i;
+				i++;
+			}
+			else if (*quote_state == input[i])
+			{
+				/* Check if we have empty quotes */
+				if (quote_start == i - 1)
+				{
+					/* Empty quotes, ignore them completely */
+					*quote_state = 0;
+					quote_start = -1;
+					i++;
+					continue ;
+				}
+				*quote_state = 0;
+				quote_start = -1;
+				i++;
+			}
+			else
+			{
+				/* Add the character to the word if it's inside quotes */
+				add_char_to_word(data->current_word, data->word_pos, input[i]);
+				i++;
+			}
+			continue ;
+		}
+		/* Handle backslash escaping inside quotes */
+		if (input[i] == '\\' && *quote_state != 0)
+		{
+			i++;
+			if (input[i])
+			{
+				/* Add the escaped character */
+				add_char_to_word(data->current_word, data->word_pos, input[i]);
+				i++;
+			}
 			continue ;
 		}
 		handle_special_chars(input, &i, data, *quote_state);
+	}
+	/* If we end with an open quote, ignore the entire word */
+	if (*quote_state != 0)
+	{
+		*(data->word_pos) = 0;
+		*quote_state = 0;
 	}
 }

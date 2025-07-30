@@ -24,7 +24,7 @@ static int	check_redirection_syntax(char **words, int i)
 
 static int	check_redirection_length(char *word)
 {
-	if ((word[0] == '>' || word[0] == '<') && strlen(word) > 2)
+	if ((word[0] == '>' || word[0] == '<') && ft_strlen(word) > 2)
 	{
 		printf("minishell: syntax error near unexpected token `%c'\n",
 			word[2]);
@@ -40,8 +40,8 @@ int	check_syntax_errors(char **words)
 	i = 0;
 	while (words[i])
 	{
-		if ((strcmp(words[i], ">") == 0 || strcmp(words[i], "<") == 0
-				|| strcmp(words[i], ">>") == 0 || strcmp(words[i], "<<") == 0)
+		if ((ft_strncmp(words[i], ">", 2) == 0 || ft_strncmp(words[i], "<", 2) == 0
+				|| ft_strncmp(words[i], ">>", 3) == 0 || ft_strncmp(words[i], "<<", 3) == 0)
 			&& (!words[i + 1] || words[i + 1][0] == '>' || words[i
 				+ 1][0] == '<' || words[i + 1][0] == '|'))
 		{

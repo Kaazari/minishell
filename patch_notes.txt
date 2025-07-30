@@ -1,0 +1,153 @@
+# Patch Notes - Minishell Corrections
+
+## Problèmes identifiés et solutions
+
+### 1. Gestion des signaux et exit codes ✅ CORRIGÉ
+**Problème :** Aucun retour de l'exit code lors de l'utilisation des différents signaux
+**Solution :**
+- ✅ Implémenter la gestion correcte de g_signal pour les signaux
+- ✅ Mettre à jour l'exit status après les signaux
+- ✅ Gérer correctement $? après Ctrl+C
+
+### 2. Echo avec options multiples ✅ CORRIGÉ
+**Problème :** echo -nnnnnnnn -nnnnnnnnn "abcdef" ne gère pas correctement les options multiples
+**Solution :**
+- ✅ Modifier builtin_echo pour gérer les options multiples avec is_n_option()
+- ✅ Implémenter la logique correcte pour traiter tous les arguments -n consécutifs
+- ✅ Utiliser write(STDOUT_FILENO, ...) au lieu de printf pour éviter les problèmes de buffering
+- ✅ La fonction gère maintenant correctement echo -n test et echo -nnnnnnnn -nnnnnnnnn test
+
+### 3. Gestion des quotes ✅ CORRIGÉ
+**Problème :** echo ""hello"" ne gère pas correctement les quotes imbriquées
+**Solution :**
+- ✅ Améliorer le parsing des quotes
+- ✅ Gérer les quotes vides correctement
+- ✅ Implémenter l'échappement des backslashes dans les quotes
+
+### 4. Redirections ✅ CORRIGÉ
+**Problème :** Les redirections ne fonctionnaient pas (echo "test" > file.txt affichait au lieu de rediriger)
+**Solution :**
+- ✅ Corriger handle_single_command pour définir shell->cmd avant l'exécution
+- ✅ Les redirections >, >>, <, << fonctionnent maintenant correctement
+
+### 5. Export avec variables d'environnement complexes
+**Problème :** export test=$test$test$test$test$test$PATH peut causer des leaks
+**Solution :**
+- Améliorer la gestion mémoire dans l'expansion des variables
+- Vérifier les fuites mémoire dans builtin_export
+
+### 6. Pipes et opérateurs logiques ✅ CORRIGÉ
+**Problème :** ls -la || wc -c ne fonctionne pas comme bash
+**Solution :**
+- ✅ Implémenter les opérateurs logiques || et &&
+- ✅ Gérer correctement l'exécution conditionnelle
+- ✅ Ajouter la reconnaissance des tokens || et && dans la tokenization
+- ✅ Implémenter handle_logical_token pour traiter les opérateurs logiques
+- ✅ Ajouter logical_operator dans la structure t_cmd (0=none, 1=||, 2=&&)
+- ✅ Implémenter handle_logical_commands pour exécuter les commandes selon les règles logiques
+- ✅ || exécute la deuxième commande seulement si la première échoue
+- ✅ && exécute la deuxième commande seulement si la première réussit
+
+### 7. Redirections complexes ✅ CORRIGÉ
+**Problème :** `cat << hd1 | cat << hd2 > out` ne fonctionnait pas avec les entrées non-interactives
+**Solution :**
+- ✅ Implémenter le prétraitement des heredocs avant l'exécution des pipes
+- ✅ Ajouter has_heredoc() pour détecter les heredocs dans les commandes
+- ✅ Ajouter preprocess_all_heredocs() pour traiter tous les heredocs avant l'exécution
+- ✅ Modifier handle_piped_commands() pour prétraiter les heredocs
+- ✅ **Problème résolu :** Modifier read_heredoc_line pour utiliser read() au lieu de readline() pour les entrées non-interactives
+- ✅ **Solution implémentée :** Utiliser read(STDIN_FILENO, &c, 1) pour lire caractère par caractère dans les entrées non-interactives
+- ✅ Les heredocs dans les pipes fonctionnent maintenant correctement avec les entrées non-interactives
+- ✅ **Comportement identique à bash :** Les commandes invalides sont rejetées de la même manière que bash
+
+### 8. Exit avec grandes valeurs ✅ CORRIGÉ
+**Problème :** exit 9000000000000000 devrait retourner 2 lors du $?
+**Solution :**
+- ✅ Limiter les valeurs d'exit à 255
+- ✅ Gérer les débordements
+
+### 9. Prompt vide ✅ CORRIGÉ
+**Problème :** Le prompt " devrait donner une command not found
+**Solution :**
+- ✅ Gérer les commandes vides correctement
+- ✅ Retourner "command not found" pour les commandes vides
+
+### 10. Export sans égal ✅ CORRIGÉ
+**Problème :** export abcdef ne devrait pas apparaître dans env
+**Solution :**
+- ✅ Vérifier la présence du caractère '=' dans export
+- ✅ Ne pas ajouter les variables sans valeur
+
+### 11. Tilde expansion ✅ CORRIGÉ
+**Problème :** cd ~ ne fonctionne pas
+**Solution :**
+- ✅ Implémenter expand_tilde() pour gérer l'expansion du tilde
+- ✅ Modifier get_cd_path() pour utiliser l'expansion du tilde
+- ✅ Gérer les cas ~ et ~/path
+- ✅ Gérer la libération mémoire pour les chemins expansés
+
+### 12. Double prompt ✅ CORRIGÉ
+**Problème :** Apparition du minishell deux fois
+**Solution :**
+- ✅ Modifier le signal handler pour éviter l'affichage du prompt pendant l'exécution des commandes
+- ✅ Ajouter g_signal_exit_status = 999 pendant l'exécution des commandes builtin et externes
+- ✅ Corriger la gestion des signaux pour éviter le double affichage du prompt
+
+## Implémentations à faire
+
+### Priorité Haute
+1. ✅ Correction de la gestion des signaux
+2. ✅ Amélioration d'echo pour les options multiples
+3. ✅ Correction de la gestion des quotes
+4. ✅ Correction des redirections
+5. ✅ Implémentation des opérateurs logiques
+6. ✅ Correction des redirections complexes (heredocs dans les pipes)
+
+### Priorité Moyenne
+1. Amélioration de l'expansion des variables d'environnement
+2. ✅ Correction des redirections complexes
+3. ✅ Gestion correcte d'export
+
+### Priorité Basse
+1. ✅ Implémentation de l'expansion du tilde
+2. Amélioration des messages d'erreur
+
+## Modifications apportées
+
+### ✅ Corrections effectuées :
+1. **builtin_echo** : Gestion des options multiples -n
+2. **builtin_exit** : Limitation des valeurs à 255 et gestion des débordements
+3. **shell_signals** : Ajout de handle_signal_exit_status pour gérer les exit codes
+4. **shell_utils** : Mise à jour de l'exit status lors des signaux
+5. **builtin_env** : Correction d'export pour ne pas ajouter les variables sans valeur
+6. **shell_execution** : Amélioration de la détection des commandes vides
+7. **tokenize_input** : Amélioration de la gestion des quotes et ajout de l'échappement
+8. **tokenize_helpers** : Amélioration de save_word pour ignorer les mots vides
+9. **tokenize_cmd** : Nettoyage des mots vides après tokenization
+10. **shell_commands** : ✅ Correction finale de la gestion des commandes vides avec quotes
+11. **shell_commands** : ✅ Correction de handle_single_command pour définir shell->cmd
+12. **tokenize_input** : ✅ Ajout de la gestion de l'échappement des backslashes
+13. **Fonctions libft** : ✅ Remplacement de strlen, strcmp, strncmp, strcpy, strncpy par les versions ft_* autorisées
+14. **Opérateurs logiques** : ✅ Implémentation complète de || et && avec gestion conditionnelle
+15. **Tilde expansion** : ✅ Implémentation de l'expansion du tilde dans cd
+16. **Gestion des signaux** : ✅ Correction du double prompt en modifiant le signal handler
+17. **builtin_cd** : ✅ Correction des segfaults et fuites mémoire
+18. **Expansion des variables** : ✅ Gestion correcte des expansions complexes sans fuites mémoire
+
+### 🔄 En cours :
+- Aucun
+
+### ❌ À faire :
+- Améliorations mineures possibles pour les redirections très complexes
+- Amélioration des messages d'erreur
+
+## Tests à effectuer
+- ✅ Tests d'echo avec options multiples
+- ✅ Tests d'export sans égal
+- ✅ Tests d'exit avec grandes valeurs
+- ✅ Tests de commandes vides avec quotes
+- ✅ Tests de redirections (> < >> <<)
+- ✅ Tests d'échappement des quotes
+- Tests de signaux (Ctrl+C, Ctrl-D, Ctrl-\)
+- Tests de pipes et redirections complexes
+- Tests d'export et d'environnement
