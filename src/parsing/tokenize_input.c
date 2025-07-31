@@ -107,10 +107,14 @@ void	process_input_chars(char *input, t_token_data *data, char *quote_state,
 		}
 		handle_special_chars(input, &i, data, *quote_state);
 	}
-	/* If we end with an open quote, ignore the entire word */
+	/* If we end with an open quote, display error message */
 	if (*quote_state != 0)
 	{
+		if (*quote_state == '\'')
+			write(STDERR_FILENO, "minishell: Error: Unmatched single quotes\n", 42);
+		else
+			write(STDERR_FILENO, "minishell: Error: Unmatched double quotes\n", 42);
 		*(data->word_pos) = 0;
-		*quote_state = 0;
+		/* Don't reset quote_state, let tokenize_words handle it */
 	}
 }

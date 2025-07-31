@@ -85,6 +85,14 @@ char	**tokenize_words(char *input, t_shell *shell)
 	init.word_pos = &counts[1];
 	init_tokenize_data(&data, &init);
 	process_input_chars(input, &data, &quote_state, shell);
+
+	/* Check for unmatched quotes */
+	if (quote_state != 0)
+	{
+		free(init.words);
+		return (NULL);
+	}
+
 	if (counts[1] > 0)
 		save_word(init.words, &counts[0], current_word, counts[1]);
 	init.words[counts[0]] = NULL;

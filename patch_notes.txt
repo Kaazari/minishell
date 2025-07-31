@@ -60,25 +60,34 @@
 - ✅ Les heredocs dans les pipes fonctionnent maintenant correctement avec les entrées non-interactives
 - ✅ **Comportement identique à bash :** Les commandes invalides sont rejetées de la même manière que bash
 
-### 8. Exit avec grandes valeurs ✅ CORRIGÉ
+### 13. Gestion des quotes non fermées ✅ CORRIGÉ
+**Problème :** Les quotes non fermées ne généraient pas de messages d'erreur appropriés
+**Solution :**
+- ✅ Ajout de messages d'erreur spécifiques pour les quotes simples et doubles non fermées
+- ✅ Modification de `process_input_chars` pour détecter les quotes non fermées
+- ✅ Modification de `tokenize_words` pour gérer les erreurs de quotes non fermées
+- ✅ Messages d'erreur : "minishell: Error: Unmatched single quotes" et "minishell: Error: Unmatched double quotes"
+- ✅ Les commandes avec quotes non fermées sont rejetées et n'exécutent pas
+
+### 14. Exit avec grandes valeurs ✅ CORRIGÉ
 **Problème :** exit 9000000000000000 devrait retourner 2 lors du $?
 **Solution :**
 - ✅ Limiter les valeurs d'exit à 255
 - ✅ Gérer les débordements
 
-### 9. Prompt vide ✅ CORRIGÉ
+### 15. Prompt vide ✅ CORRIGÉ
 **Problème :** Le prompt " devrait donner une command not found
 **Solution :**
 - ✅ Gérer les commandes vides correctement
 - ✅ Retourner "command not found" pour les commandes vides
 
-### 10. Export sans égal ✅ CORRIGÉ
+### 16. Export sans égal ✅ CORRIGÉ
 **Problème :** export abcdef ne devrait pas apparaître dans env
 **Solution :**
 - ✅ Vérifier la présence du caractère '=' dans export
 - ✅ Ne pas ajouter les variables sans valeur
 
-### 11. Tilde expansion ✅ CORRIGÉ
+### 17. Tilde expansion ✅ CORRIGÉ
 **Problème :** cd ~ ne fonctionne pas
 **Solution :**
 - ✅ Implémenter expand_tilde() pour gérer l'expansion du tilde
@@ -86,7 +95,7 @@
 - ✅ Gérer les cas ~ et ~/path
 - ✅ Gérer la libération mémoire pour les chemins expansés
 
-### 12. Double prompt ✅ CORRIGÉ
+### 18. Double prompt ✅ CORRIGÉ
 **Problème :** Apparition du minishell deux fois
 **Solution :**
 - ✅ Modifier le signal handler pour éviter l'affichage du prompt pendant l'exécution des commandes
@@ -133,6 +142,8 @@
 16. **Gestion des signaux** : ✅ Correction du double prompt en modifiant le signal handler
 17. **builtin_cd** : ✅ Correction des segfaults et fuites mémoire
 18. **Expansion des variables** : ✅ Gestion correcte des expansions complexes sans fuites mémoire
+19. **Redirections complexes** : ✅ Correction des heredocs dans les pipes avec entrées non-interactives
+20. **Gestion des quotes** : ✅ Ajout de messages d'erreur pour les quotes non fermées
 
 ### 🔄 En cours :
 - Aucun
