@@ -50,6 +50,8 @@ void	setup_child_pipes(t_shell *shell, int i, int cmd_count)
 	int	in = -1;
 	int	out = -1;
 
+	if (!shell->pipex)
+		return ;
 	if (i > 0 && shell->pipex->pipe_fds)
 	{
 		in = shell->pipex->pipe_fds[2 * (i - 1) + 1];

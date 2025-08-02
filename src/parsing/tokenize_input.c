@@ -12,6 +12,22 @@
 
 #include "../../include/minishell.h"
 
+/**
+ * Gère l'expansion des variables d'environnement ($VAR)
+ *
+ * Cette fonction :
+ * - Prépare la structure var_expansion avec les données nécessaires
+ * - Appelle add_variable_to_word pour traiter l'expansion
+ * - Met à jour l'index de position dans l'entrée
+ *
+ * @param input: Ligne de commande complète
+ * @param i: Index de position dans l'entrée (mis à jour)
+ * @param data: Structure de données de tokenization
+ * @param shell: Structure shell pour accéder à l'environnement
+ *
+ * Note: Cette fonction n'est appelée que si on n'est pas dans des quotes simples
+ * car les variables ne sont pas expansées dans les quotes simples
+ */
 static void	handle_variable_expansion(char *input, int *i, t_token_data *data,
 		t_shell *shell)
 {
@@ -25,6 +41,24 @@ static void	handle_variable_expansion(char *input, int *i, t_token_data *data,
 	(*i)++;
 }
 
+/**
+ * Traite les caractères spéciaux selon le contexte
+ *
+ * Cette fonction gère différents types de caractères :
+ * - Redirections (> < >> <<) : crée des tokens de redirection
+ * - Opérateurs logiques (|| &&) : crée des tokens logiques
+ * - Pipes (|) : crée des tokens de pipe
+ * - Séparateurs (espaces, tabulations) : termine le mot courant
+ * - Caractères normaux : ajoute au mot courant
+ * - Quotes : ignore (gérées ailleurs)
+ *
+ * @param input: Ligne de commande complète
+ * @param i: Index de position dans l'entrée (mis à jour)
+ * @param data: Structure de données de tokenization
+ * @param quote_state: État actuel des quotes (0 = pas de quotes)
+ *
+ * Note: Les caractères spéciaux ne sont traités que si on n'est pas dans des quotes
+ */
 static void	handle_special_chars(char *input, int *i, t_token_data *data,
 		char quote_state)
 {
@@ -47,6 +81,30 @@ static void	handle_special_chars(char *input, int *i, t_token_data *data,
 		(*i)++;
 }
 
+/**
+ * Traite chaque caractère de l'entrée pour la tokenization
+ *
+ * Cette fonction est le cœur de la tokenization et gère :
+ * - L'expansion des variables d'environnement ($VAR)
+ * - Les quotes simples et doubles avec leur contenu
+ * - Les quotes vides (ignorées complètement)
+ * - L'échappement des backslashes dans les quotes
+ * - Les caractères spéciaux (redirections, pipes, opérateurs logiques)
+ * - Les erreurs de quotes non fermées
+ *
+ * Comportement des quotes :
+ * - Les quotes vides sont complètement ignorées
+ * - Les variables sont expansées dans les quotes doubles, pas dans les simples
+ * - Les backslashes échappent les caractères dans les quotes
+ *
+ * @param input: Ligne de commande à traiter
+ * @param data: Structure de données de tokenization
+ * @param quote_state: État des quotes (mis à jour)
+ * @param shell: Structure shell pour l'expansion des variables
+ *
+ * Note: Cette fonction affiche des messages d'erreur pour les quotes non fermées
+ * et réinitialise la position du mot pour éviter les tokens invalides
+ */
 void	process_input_chars(char *input, t_token_data *data, char *quote_state,
 		t_shell *shell)
 {
@@ -72,10 +130,8 @@ void	process_input_chars(char *input, t_token_data *data, char *quote_state,
 			}
 			else if (*quote_state == input[i])
 			{
-				/* Check if we have empty quotes */
 				if (quote_start == i - 1)
 				{
-					/* Empty quotes, ignore them completely */
 					*quote_state = 0;
 					quote_start = -1;
 					i++;
@@ -87,19 +143,16 @@ void	process_input_chars(char *input, t_token_data *data, char *quote_state,
 			}
 			else
 			{
-				/* Add the character to the word if it's inside quotes */
 				add_char_to_word(data->current_word, data->word_pos, input[i]);
 				i++;
 			}
 			continue ;
 		}
-		/* Handle backslash escaping inside quotes */
 		if (input[i] == '\\' && *quote_state != 0)
 		{
 			i++;
 			if (input[i])
 			{
-				/* Add the escaped character */
 				add_char_to_word(data->current_word, data->word_pos, input[i]);
 				i++;
 			}
@@ -107,7 +160,6 @@ void	process_input_chars(char *input, t_token_data *data, char *quote_state,
 		}
 		handle_special_chars(input, &i, data, *quote_state);
 	}
-	/* If we end with an open quote, display error message */
 	if (*quote_state != 0)
 	{
 		if (*quote_state == '\'')
@@ -115,6 +167,5 @@ void	process_input_chars(char *input, t_token_data *data, char *quote_state,
 		else
 			write(STDERR_FILENO, "minishell: Error: Unmatched double quotes\n", 42);
 		*(data->word_pos) = 0;
-		/* Don't reset quote_state, let tokenize_words handle it */
 	}
 }

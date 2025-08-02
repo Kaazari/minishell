@@ -12,6 +12,20 @@
 
 #include "../../include/minishell.h"
 
+/**
+ * Gère l'exécution de la commande exit avec gestion spéciale
+ *
+ * Cette fonction :
+ * - Appelle builtin_exit pour traiter la commande exit
+ * - Si le résultat est >= 1000, cela indique une demande de sortie
+ * - Met à jour shell->exit_status et termine le processus
+ *
+ * @param args: Arguments de la commande exit
+ * @param shell: Structure shell contenant l'état
+ *
+ * Note: Le code de retour >= 1000 est utilisé pour distinguer une demande
+ * de sortie d'un simple statut de retour
+ */
 static void	handle_exit_command(char **args, t_shell *shell)
 {
 	int	result;
@@ -24,9 +38,27 @@ static void	handle_exit_command(char **args, t_shell *shell)
 	}
 }
 
+/**
+ * Exécute une commande builtin ou externe selon le nom de la commande
+ *
+ * Cette fonction :
+ * - Identifie le type de commande (builtin ou externe)
+ * - Exécute la commande builtin appropriée (cd, pwd, echo, env, export, unset, exit)
+ * - Délègue l'exécution des commandes externes à execute_external_commands
+ * - Gère la commande ":" (commande vide qui retourne toujours 0)
+ *
+ * Gestion des signaux :
+ * - Met g_signal_exit_status à 999 pendant l'exécution pour éviter l'affichage du prompt
+ * - Remet g_signal_exit_status à 0 après exécution
+ *
+ * @param args: Arguments de la commande à exécuter
+ * @param shell: Structure shell contenant l'état
+ *
+ * Note: La commande ":" est une commande spéciale qui ne fait rien et retourne 0
+ */
 static void	execute_builtin_command(char **args, t_shell *shell)
 {
-	g_signal_exit_status = 999; /* Prevent signal handler from redisplaying */
+	g_signal_exit_status = 999;
 	if (ft_strncmp(args[0], "cd", 3) == 0)
 		shell->exit_status = builtin_cd(args, shell);
 	else if (ft_strncmp(args[0], "pwd", 4) == 0)
@@ -45,9 +77,31 @@ static void	execute_builtin_command(char **args, t_shell *shell)
 		shell->exit_status = 0;
 	else
 		execute_external_commands(args, shell->envp, shell);
-	g_signal_exit_status = 0; /* Reset signal status */
+	g_signal_exit_status = 0;
 }
 
+/**
+ * Exécute une commande shell avec gestion des redirections et du contexte
+ *
+ * Cette fonction est le point central d'exécution des commandes :
+ * - Détermine si on est dans un contexte de pipe ou de commande simple
+ * - Applique les redirections si nécessaire (pas dans un pipe)
+ * - Exécute la commande (builtin ou externe)
+ * - Restaure les redirections après exécution
+ * - Gère la sortie des processus enfants dans les pipes
+ *
+ * Gestion du contexte :
+ * - cmd_count > 1 indique un contexte de pipe
+ * - Dans les pipes, les redirections sont gérées dans les processus enfants
+ * - Dans les commandes simples, les redirections sont appliquées ici
+ *
+ * @param args: Arguments de la commande à exécuter
+ * @param shell: Structure shell contenant l'état
+ * @param cmd_count: Nombre de commandes dans le pipeline
+ *
+ * Note: Dans un contexte de pipe, cette fonction se termine avec exit()
+ * pour permettre au processus parent de récupérer le statut de sortie
+ */
 void	execute_shell_command(char **args, t_shell *shell, int cmd_count)
 {
 	int	old_state;
@@ -56,11 +110,8 @@ void	execute_shell_command(char **args, t_shell *shell, int cmd_count)
 	old_state = shell->state;
 	shell->state = 3;
 
-	// Detect pipe context by checking cmd_count
 	in_pipe_context = (cmd_count > 1);
 
-	// Appliquer les redirections seulement si pas dans un pipe
-	// Dans les pipes, les redirections sont déjà appliquées dans le processus enfant
 	if (shell->cmd && (!in_pipe_context))
 		handle_redirections(shell->cmd, shell);
 
@@ -72,13 +123,11 @@ void	execute_shell_command(char **args, t_shell *shell, int cmd_count)
 		shell->exit_status = 127;
 	}
 
-	// Restaurer les redirections seulement si pas dans un pipe
 	if (shell->cmd && (!in_pipe_context))
 		restore_redirections(shell->cmd);
 
 	if (in_pipe_context)
 	{
-		fflush(stdout);
 		exit(shell->exit_status);
 	}
 

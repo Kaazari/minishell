@@ -12,17 +12,46 @@
 
 #include "../../include/minishell.h"
 
+/**
+ * Vérifie si une commande est un chemin absolu et exécutable
+ *
+ * Cette fonction :
+ * - Vérifie si la commande commence par '/' ou '.'
+ * - Teste si le fichier existe et est exécutable avec access()
+ * - Retourne une copie de la commande si elle est valide
+ *
+ * @param command: Nom de la commande à vérifier
+ * @return Copie de la commande si elle est un chemin absolu valide, NULL sinon
+ *
+ * Note: Cette fonction utilise ft_strdup pour retourner une copie de la commande
+ */
 char	*check_absolute_path(char *command)
 {
 	if (command[0] == '/' || command[0] == '.')
 	{
 		if (access(command, X_OK) == 0)
-			return (strdup(command));
+			return (ft_strdup(command));
 		return (NULL);
 	}
 	return (NULL);
 }
 
+/**
+ * Trouve le chemin complet d'une commande dans le PATH
+ *
+ * Cette fonction :
+ * - Vérifie d'abord si la commande est un chemin absolu
+ * - Récupère la variable d'environnement PATH
+ * - Divise le PATH en chemins individuels
+ * - Recherche la commande dans chaque chemin
+ * - Retourne le premier chemin valide trouvé
+ *
+ * @param command: Nom de la commande à rechercher
+ * @return Chemin complet de la commande ou NULL si non trouvée
+ *
+ * Note: Cette fonction gère la libération mémoire du tableau de chemins
+ * en cas d'échec de recherche
+ */
 char	*find_command_in_path(char *command)
 {
 	char	*path;
@@ -44,6 +73,19 @@ char	*find_command_in_path(char *command)
 	return (result);
 }
 
+/**
+ * Affiche une ligne de variable d'environnement au format export
+ *
+ * Cette fonction :
+ * - Trouve le signe égal dans la variable
+ * - Extrait le nom et la valeur de la variable
+ * - Affiche au format "declare -x NOM=\"VALEUR\""
+ * - Gère les variables sans valeur (sans signe égal)
+ *
+ * @param env_var: Variable d'environnement à afficher
+ *
+ * Note: Cette fonction alloue et libère la mémoire pour les sous-chaînes
+ */
 static void	print_export_line(char *env_var)
 {
 	char	*equal_sign;
@@ -64,6 +106,18 @@ static void	print_export_line(char *env_var)
 		printf("declare -x %s\n", env_var);
 }
 
+/**
+ * Affiche toutes les variables d'environnement au format export
+ *
+ * Cette fonction :
+ * - Parcourt toutes les variables d'environnement
+ * - Affiche chaque variable au format export
+ * - Trie les variables par ordre alphabétique (géré par l'appelant)
+ *
+ * @param envp: Tableau de variables d'environnement
+ *
+ * Note: Cette fonction utilise print_export_line pour chaque variable
+ */
 void	print_export_format(char **envp)
 {
 	int	i;
@@ -76,6 +130,22 @@ void	print_export_format(char **envp)
 	}
 }
 
+/**
+ * Met à jour une variable d'environnement existante
+ *
+ * Cette fonction :
+ * - Trouve le signe égal dans la nouvelle variable
+ * - Recherche la variable existante par son nom
+ * - Remplace la valeur de la variable existante
+ * - Libère l'ancienne valeur et alloue la nouvelle
+ *
+ * @param var: Nouvelle variable au format "NOM=VALEUR"
+ * @param shell: Structure shell contenant l'environnement
+ * @return 1 si la variable a été mise à jour, 0 si elle n'existe pas
+ *
+ * Note: Cette fonction ne gère que les variables avec un signe égal.
+ * Les variables sans valeur ne sont pas mises à jour.
+ */
 int	update_existing_env_var(char *var, t_shell *shell)
 {
 	int		i;

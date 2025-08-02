@@ -12,8 +12,20 @@
 
 #include "../../include/minishell.h"
 
-
-
+/**
+ * Force le nettoyage de toutes les ressources allouées par le shell
+ *
+ * Cette fonction libère de manière sécurisée :
+ * - La commande courante (shell->cmd) et ses ressources
+ * - La structure pipex et ses descripteurs de fichiers
+ * - Les commandes en cours d'exécution (current_commands)
+ * - L'environnement local et les variables
+ *
+ * @param shell: Structure shell à nettoyer
+ *
+ * Note: Cette fonction vérifie l'existence des pointeurs avant de les libérer
+ * pour éviter les segfaults. Elle met les pointeurs à NULL après libération.
+ */
 static void	force_cleanup(t_shell *shell)
 {
 	if (shell && shell->cmd)
@@ -37,6 +49,21 @@ static void	force_cleanup(t_shell *shell)
 	cleanup_envp(shell);
 }
 
+/**
+ * Termine proprement le minishell avec nettoyage complet
+ *
+ * Cette fonction :
+ * - Nettoie toutes les ressources allouées par le shell
+ * - Vide l'historique des commandes
+ * - Restaure les paramètres du terminal
+ * - Termine le processus avec le statut spécifié
+ *
+ * @param shell: Structure shell à nettoyer
+ * @param status: Code de sortie du programme
+ *
+ * Note: Cette fonction est appelée lors de la sortie normale du shell (Ctrl+D)
+ * ou lors de la réception d'un signal de terminaison (SIGQUIT)
+ */
 void	clean_exit(t_shell *shell, int status)
 {
 	if (shell)

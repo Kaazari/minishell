@@ -50,8 +50,7 @@ void	save_word(char **words, int *count, char *word, int len)
 	word_copy = malloc(len + 1);
 	if (!word_copy)
 		return ;
-	strncpy(word_copy, word, len);
-	word_copy[len] = '\0';
+	ft_strlcpy(word_copy, word, len + 1);
 	/* Check if the word is empty after copying */
 	i = 0;
 	while (i < len && (word_copy[i] == ' ' || word_copy[i] == '\t' ||

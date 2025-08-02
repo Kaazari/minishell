@@ -27,11 +27,10 @@ int	builtin_env(t_shell *shell)
 
 static void	handle_export_var(char *arg, t_shell *shell)
 {
-	if (strchr(arg, '='))
+	if (ft_strchr(arg, '='))
 		add_or_update_env(arg, shell);
 	else
 	{
-		/* Only export existing variables, don't add new ones without value */
 		if (getenv(arg))
 			export_existing_var(arg, shell);
 	}

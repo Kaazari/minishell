@@ -13,6 +13,20 @@
 #include "../include/minishell.h"
 #include "pipex.h"
 
+/**
+ * Initialise la structure pipex pour gérer les pipes
+ *
+ * Cette fonction :
+ * - Définit le nombre de commandes et de pipes
+ * - Alloue le tableau de descripteurs de fichiers pour les pipes
+ * - Crée les pipes nécessaires
+ * - Gère le cas où il n'y a qu'une seule commande (pas de pipes)
+ *
+ * @param pipex: Structure pipex à initialiser
+ * @param cmd_count: Nombre de commandes dans le pipeline
+ *
+ * Note: Si l'allocation ou la création des pipes échoue, pipe_fds est mis à NULL
+ */
 void	init_pipes(t_pipex *pipex, int cmd_count)
 {
 	pipex->cmd_count = cmd_count;
@@ -29,6 +43,18 @@ void	init_pipes(t_pipex *pipex, int cmd_count)
 		pipex->pipe_fds = NULL;
 }
 
+/**
+ * Ferme tous les descripteurs de fichiers des pipes et libère la mémoire
+ *
+ * Cette fonction :
+ * - Ferme tous les descripteurs de fichiers des pipes
+ * - Libère le tableau de descripteurs
+ * - Met le pointeur à NULL
+ *
+ * @param pipex: Structure pipex contenant les descripteurs à fermer
+ *
+ * Note: Cette fonction vérifie l'existence de pipe_fds avant de procéder
+ */
 void	close_pipes(t_pipex *pipex)
 {
 	int	i;
@@ -45,6 +71,18 @@ void	close_pipes(t_pipex *pipex)
 	pipex->pipe_fds = NULL;
 }
 
+/**
+ * Attend la terminaison de tous les processus enfants
+ *
+ * Cette fonction :
+ * - Attend chaque processus enfant avec waitpid
+ * - Récupère le statut de sortie de chaque processus
+ *
+ * @param pipex: Structure pipex contenant le nombre de commandes
+ * @param child_pids: Tableau des PIDs des processus enfants
+ *
+ * Note: Cette fonction attend tous les processus dans l'ordre de création
+ */
 void	wait_children(t_pipex *pipex, pid_t *child_pids)
 {
 	int	i;
@@ -58,6 +96,33 @@ void	wait_children(t_pipex *pipex, pid_t *child_pids)
 	}
 }
 
+/**
+ * Exécute des commandes en parallèle avec des pipes
+ *
+ * Cette fonction implémente l'exécution de pipelines de commandes :
+ * - Crée un processus enfant pour chaque commande
+ * - Établit les pipes entre les processus
+ * - Configure les redirections d'entrée/sortie pour chaque processus
+ * - Gère les redirections (heredoc, <, >, >>) dans les processus enfants
+ * - Attend la terminaison de tous les processus
+ *
+ * Gestion des pipes :
+ * - Chaque processus lit depuis le pipe précédent (sauf le premier)
+ * - Chaque processus écrit vers le pipe suivant (sauf le dernier)
+ * - Les descripteurs de fichiers sont fermés dans le processus parent
+ *
+ * Gestion des redirections :
+ * - Les heredocs sont prétraités et leurs descripteurs sont utilisés
+ * - Les redirections d'entrée (<) remplacent STDIN
+ * - Les redirections de sortie (> >>) remplacent STDOUT
+ *
+ * @param shell: Structure shell contenant l'état
+ * @param commands: Tableau de commandes à exécuter
+ * @param cmd_count: Nombre de commandes dans le pipeline
+ *
+ * Note: Cette fonction utilise un tableau de PIDs limité à 256 processus.
+ * Les processus enfants se terminent avec exit() après exécution.
+ */
 void	execute_piped_commands(t_shell *shell, t_cmd **commands, int cmd_count)
 {
 	int pipe_fd[2];
@@ -95,7 +160,6 @@ void	execute_piped_commands(t_shell *shell, t_cmd **commands, int cmd_count)
 				close(pipe_fd[1]);
 				close(pipe_fd[0]);
 			}
-			// Redirections (heredoc, <, >, >>)
 			if (commands[i] && commands[i]->redirs)
 			{
 				for (int j = 0; j < commands[i]->redir_count; j++)
@@ -131,17 +195,14 @@ void	execute_piped_commands(t_shell *shell, t_cmd **commands, int cmd_count)
 				}
 			}
 			shell->cmd = commands[i];
-			// Force pipex values for child process
 			if (shell->pipex)
 			{
 				shell->pipex->cmd_count = cmd_count;
 				shell->pipex->pipe_count = cmd_count - 1;
 			}
-			// Pass cmd_count as a global variable or modify execute_shell_command
 			execute_shell_command(commands[i]->args, shell, cmd_count);
 			exit(shell->exit_status);
 		}
-		// Parent
 		if (prev_fd != -1)
 			close(prev_fd);
 		if (i < cmd_count - 1)

@@ -98,6 +98,13 @@ char	**dup_envp(char **envp)
 	while (i < count)
 	{
 		copy[i] = ft_strdup(envp[i]);
+		if (!copy[i])
+		{
+			while (i > 0)
+				free(copy[--i]);
+			free(copy);
+			return (NULL);
+		}
 		i++;
 	}
 	copy[count] = NULL;

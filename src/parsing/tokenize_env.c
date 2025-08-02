@@ -34,11 +34,14 @@ char	*get_env_value(char *var, char **envp)
 
 static int	handle_exit_status(char *word, int *pos, t_shell *shell)
 {
-	char	exit_str[12];
+	char	*exit_str;
 
-	sprintf(exit_str, "%d", shell->exit_status);
+	exit_str = ft_itoa(shell->exit_status);
+	if (!exit_str)
+		return (0);
 	ft_strlcpy(word + *pos, exit_str, ft_strlen(exit_str) + 1);
 	*pos += ft_strlen(exit_str);
+	free(exit_str);
 	return (0);
 }
 
