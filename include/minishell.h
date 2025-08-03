@@ -74,6 +74,7 @@ typedef struct s_token_data
 	int			*word_pos;
 	int			*word_count;
 	char		**words;
+	int			syntax_error;
 }				t_token_data;
 
 typedef struct s_quote_context

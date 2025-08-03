@@ -16,11 +16,23 @@ static void	handle_logical_operators(char *input, int *i, t_token_data *data)
 {
 	if (input[*i] == '|' && input[*i + 1] == '|')
 	{
+		if (input[*i + 2] == '|')
+		{
+			printf("minishell: syntax error near unexpected token `|'\n");
+			data->syntax_error = 1;
+			return ;
+		}
 		handle_logical_token(data, input, i);
 		return ;
 	}
 	else if (input[*i] == '&' && input[*i + 1] == '&')
 	{
+		if (input[*i + 2] == '&')
+		{
+			printf("minishell: syntax error near unexpected token `&'\n");
+			data->syntax_error = 1;
+			return ;
+		}
 		handle_logical_token(data, input, i);
 		return ;
 	}

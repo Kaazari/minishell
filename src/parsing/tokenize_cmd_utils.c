@@ -31,6 +31,7 @@ void	init_tokenize_data(t_token_data *data, t_tokenize_init *init)
 	data->word_count = init->word_count;
 	data->current_word = init->current_word;
 	data->word_pos = init->word_pos;
+	data->syntax_error = 0;
 	*(init->word_count) = 0;
 	*(init->word_pos) = 0;
 	memset(init->current_word, 0, 1000);

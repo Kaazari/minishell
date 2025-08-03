@@ -14,7 +14,7 @@
 
 static int	check_redirection_syntax(char **words, int i)
 {
-	if (!words[i + 1])
+	if (!words[i + 1] || words[i + 1][0] == '\0')
 		printf("minishell: syntax error near unexpected token `newline'\n");
 	else
 		printf("minishell: syntax error near unexpected token `%s'\n",
@@ -43,11 +43,13 @@ int	check_syntax_errors(char **words)
 		if ((ft_strncmp(words[i], ">", 2) == 0
 				|| ft_strncmp(words[i], "<", 2) == 0
 				|| ft_strncmp(words[i], ">>", 3) == 0
-				|| ft_strncmp(words[i], "<<", 3) == 0)
-			&& (!words[i + 1] || words[i + 1][0] == '>'
-			|| words[i + 1][0] == '<' || words[i + 1][0] == '|'))
+				|| ft_strncmp(words[i], "<<", 3) == 0))
 		{
-			return (check_redirection_syntax(words, i));
+			if (!words[i + 1] || words[i + 1][0] == '\0')
+				return (check_redirection_syntax(words, i));
+			if (words[i + 1][0] == '>' || words[i + 1][0] == '<'
+				|| words[i + 1][0] == '|')
+				return (check_redirection_syntax(words, i));
 		}
 		if (check_redirection_length(words[i]))
 			return (1);

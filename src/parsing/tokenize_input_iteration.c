@@ -45,6 +45,7 @@ void	handle_quote_in_iteration(t_char_iteration_context *ctx, int *i)
 
 void	handle_backslash_in_iteration(t_char_iteration_context *ctx, int *i)
 {
+	add_char_to_word(ctx->data->current_word, ctx->data->word_pos, '\\');
 	(*i)++;
 	if (ctx->input[*i])
 	{

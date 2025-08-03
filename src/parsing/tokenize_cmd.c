@@ -105,6 +105,8 @@ char	**tokenize_words(char *input, t_shell *shell)
 	process_input_chars(input, &data, &quote_state, shell);
 	if (quote_state != 0)
 		return (handle_quote_error(init.words));
+	if (data.syntax_error)
+		return (handle_quote_error(init.words));
 	save_word(init.words, init.word_count, init.current_word,
 		*(init.word_pos));
 	init.words[*(init.word_count)] = NULL;
