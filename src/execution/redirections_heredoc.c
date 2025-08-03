@@ -22,80 +22,18 @@ static int	setup_heredoc_pipe(int *pipe_fd)
 	return (1);
 }
 
-static char	*read_line_from_stdin(void)
+static int	handle_signal_interrupt(t_shell *shell)
 {
-	char	buffer[1000];
-	int		i;
-	int		bytes_read;
-	char	c;
-
-	i = 0;
-	while (i < 999)
+	if (g_signal_exit_status == SIGINT)
 	{
-		if (g_signal == SIGINT)
-			return (NULL);
-		bytes_read = read(STDIN_FILENO, &c, 1);
-		if (bytes_read <= 0)
-		{
-			if (g_signal == SIGINT)
-				return (NULL);
-			if (bytes_read == 0)
-				return (NULL);
-			return (NULL);
-		}
-		if (c == '\n')
-		{
-			buffer[i] = c;
-			buffer[i + 1] = '\0';
-			return (ft_strdup(buffer));
-		}
-		buffer[i] = c;
-		i++;
+		shell->state = 1;
+		g_signal_exit_status = 0;
 	}
-	buffer[i] = '\0';
-	return (ft_strdup(buffer));
+	return (0);
 }
 
-static int	read_heredoc_line(char *delimiter, int pipe_fd, t_shell *shell)
+static int	process_heredoc_line(char *line, char *delimiter, int pipe_fd)
 {
-	char	*line;
-
-	/* Check if stdin is interactive */
-	if (isatty(STDIN_FILENO))
-	{
-		line = readline("> ");
-		if (!line || g_signal == SIGINT)
-		{
-			if (line)
-				free(line);
-			if (g_signal == SIGINT)
-			{
-				shell->state = 1;
-				g_signal = 0;
-			}
-			return (0);
-		}
-	}
-	else
-	{
-		/* Use character-by-character reading for non-interactive input */
-		line = read_line_from_stdin();
-		if (!line || g_signal == SIGINT)
-		{
-			if (line)
-				free(line);
-			if (g_signal == SIGINT)
-			{
-				shell->state = 1;
-				g_signal = 0;
-			}
-			return (0);
-		}
-		/* Remove trailing newline if present */
-		if (line[ft_strlen(line) - 1] == '\n')
-			line[ft_strlen(line) - 1] = '\0';
-	}
-
 	if (ft_strncmp(line, delimiter, ft_strlen(delimiter) + 1) == 0)
 	{
 		free(line);
@@ -105,6 +43,19 @@ static int	read_heredoc_line(char *delimiter, int pipe_fd, t_shell *shell)
 	write(pipe_fd, "\n", 1);
 	free(line);
 	return (1);
+}
+
+static int	read_heredoc_line(char *delimiter, int pipe_fd, t_shell *shell)
+{
+	char	*line;
+
+	if (isatty(STDIN_FILENO))
+		line = read_interactive_line();
+	else
+		line = read_non_interactive_line();
+	if (!line || g_signal_exit_status == SIGINT)
+		return (handle_signal_interrupt(shell));
+	return (process_heredoc_line(line, delimiter, pipe_fd));
 }
 
 void	handle_heredoc(t_cmd *cmd, int i, t_shell *shell)
@@ -120,13 +71,7 @@ void	handle_heredoc(t_cmd *cmd, int i, t_shell *shell)
 		continue ;
 	close(pipe_fd[1]);
 	if (shell->state == 1)
-	{
-		close(pipe_fd[0]);
-		cmd->redirs[i].is_heredoc_fd = -1;
-		restore_main_signals();
-		shell->state = 0;
-		return ;
-	}
-	cmd->redirs[i].is_heredoc_fd = pipe_fd[0];
-	restore_main_signals();
+		handle_heredoc_error(pipe_fd, cmd, i, shell);
+	else
+		handle_heredoc_success(pipe_fd, cmd, i);
 }

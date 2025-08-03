@@ -55,8 +55,6 @@ int	builtin_echo(char **args, t_shell *shell)
 	return (0);
 }
 
-
-
 static int	is_numeric(char *str)
 {
 	int	i;

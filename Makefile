@@ -21,47 +21,67 @@ PIPEX_DIR = ./pipex
 # Source files organized by modules
 CORE_SRCS = $(SRC_DIR)/core/minishell.c \
 			$(SRC_DIR)/core/shell_utils.c \
+			$(SRC_DIR)/core/shell_utils_helpers.c \
 			$(SRC_DIR)/core/shell_cleanup.c \
 			$(SRC_DIR)/core/shell_signals.c \
 			$(SRC_DIR)/core/shell_execution.c \
-			$(SRC_DIR)/core/shell_commands.c
+			$(SRC_DIR)/core/shell_execution_helpers.c \
+			$(SRC_DIR)/core/shell_commands.c \
+			$(SRC_DIR)/core/shell_commands_helpers.c
 
 PARSING_SRCS = $(SRC_DIR)/parsing/tokenize_utils.c \
 			   $(SRC_DIR)/parsing/tokenize_input.c \
+			   $(SRC_DIR)/parsing/tokenize_input_helpers.c \
+			   $(SRC_DIR)/parsing/tokenize_input_utils.c \
+			   $(SRC_DIR)/parsing/tokenize_input_iteration.c \
+			   $(SRC_DIR)/parsing/tokenize_input_quotes.c \
 			   $(SRC_DIR)/parsing/tokenize_syntax.c \
 			   $(SRC_DIR)/parsing/tokenize_commands.c \
+			   $(SRC_DIR)/parsing/tokenize_commands_helpers.c \
 			   $(SRC_DIR)/parsing/tokenize_commands_utils.c \
 			   $(SRC_DIR)/parsing/tokenize_helpers.c \
+			   $(SRC_DIR)/parsing/tokenize_helpers_utils.c \
 			   $(SRC_DIR)/parsing/tokenize_env.c \
 			   $(SRC_DIR)/parsing/tokenize_cmd.c \
+			   $(SRC_DIR)/parsing/tokenize_cmd_helpers.c \
+			   $(SRC_DIR)/parsing/tokenize_cmd_utils.c \
 			   $(SRC_DIR)/parsing/tokenize_redirection.c
 
 EXECUTION_SRCS = $(SRC_DIR)/execution/externals.c \
-				 $(SRC_DIR)/execution/externals_utils.c \
-				 $(SRC_DIR)/execution/redirections.c \
-				 $(SRC_DIR)/execution/redirections_heredoc.c \
-				 $(SRC_DIR)/execution/redirections_signals.c \
-				 $(SRC_DIR)/execution/redirections_utils.c
+				$(SRC_DIR)/execution/externals_helpers.c \
+				$(SRC_DIR)/execution/externals_utils.c \
+				$(SRC_DIR)/execution/redirections.c \
+				$(SRC_DIR)/execution/redirections_helpers.c \
+				$(SRC_DIR)/execution/redirections_heredoc.c \
+				$(SRC_DIR)/execution/redirections_heredoc_helpers.c \
+				$(SRC_DIR)/execution/redirections_heredoc_utils.c \
+				$(SRC_DIR)/execution/redirections_signals.c \
+				$(SRC_DIR)/execution/redirections_utils.c
 
-BUILTINS_SRCS = $(SRC_DIR)/builtins/builtin_navigation.c \
-				$(SRC_DIR)/builtins/builtin_env.c \
-				$(SRC_DIR)/builtins/builtin_unset.c \
+BUILTINS_SRCS = $(SRC_DIR)/builtins/builtin_navigation_helpers.c \
+				$(SRC_DIR)/builtins/builtin_navigation_paths.c \
+				$(SRC_DIR)/builtins/builtin_navigation_expand.c \
+				$(SRC_DIR)/builtins/builtin_env_utils.c \
+				$(SRC_DIR)/builtins/builtin_unset_utils.c \
 				$(SRC_DIR)/builtins/builtin_utils.c
 
 UTILS_SRCS = $(SRC_DIR)/utils/utils.c \
-			 $(SRC_DIR)/utils/utils2.c \
+			 $(SRC_DIR)/utils/utils_helpers.c \
 			 $(SRC_DIR)/utils/env_utils.c \
-			 $(SRC_DIR)/utils/export_utils.c \
-			 $(SRC_DIR)/utils/input_utils.c \
-			 $(SRC_DIR)/utils/get_next_line.c \
-			 $(SRC_DIR)/utils/get_next_line_utils.c
+			 $(SRC_DIR)/utils/memory_utils.c
 
 MEMORY_SRCS = $(SRC_DIR)/memory/cleaner.c \
-			  $(SRC_DIR)/memory/cleanup_utils.c
+			  $(SRC_DIR)/memory/cleanup_utils.c \
+			  $(SRC_DIR)/memory/cleanup_utils_helpers.c
 
 PIPEX_SRCS = $(PIPEX_DIR)/pipes.c \
-			 $(PIPEX_DIR)/pipes_utils.c \
-			 $(PIPEX_DIR)/utils.c
+			$(PIPEX_DIR)/pipes_helpers.c \
+			$(PIPEX_DIR)/pipes_redirections.c \
+			$(PIPEX_DIR)/pipes_execution.c \
+			$(PIPEX_DIR)/pipes_child.c \
+			$(PIPEX_DIR)/pipes_setup.c \
+			$(PIPEX_DIR)/pipes_utils.c \
+			$(PIPEX_DIR)/utils.c
 
 # All source files
 SRCS = $(CORE_SRCS) $(PARSING_SRCS) $(EXECUTION_SRCS) \

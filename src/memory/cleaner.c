@@ -56,8 +56,6 @@ void	free_cmds(t_cmd **cmds)
 	free(cmds);
 }
 
-
-
 void	free_partial_cmds(t_cmd **cmds, int count)
 {
 	int	i;

@@ -13,80 +13,8 @@
 #include "../../include/minishell.h"
 
 /**
- * Traite une commande séparée par un pipe (|)
- *
- * Cette fonction :
- * - Extrait les mots de la commande entre start et i
- * - Crée une nouvelle structure de commande
- * - Traite les mots pour séparer arguments et redirections
- * - Met à jour les indices pour la prochaine commande
- *
- * @param proc: Structure contenant les données de traitement
- * @param i: Index du token pipe dans le tableau de mots
- *
- * Note: Cette fonction gère la libération mémoire en cas d'échec d'allocation
- */
-static void	process_pipe_command(t_cmd_process *proc, int i)
-{
-	char	**cmd_words;
-
-	cmd_words = create_cmd_words(proc->words, *(proc->start), i);
-	if (!cmd_words)
-		return ;
-	proc->commands[*(proc->cmd_idx)] = create_cmd();
-	if (!proc->commands[*(proc->cmd_idx)])
-	{
-		free_args(cmd_words);
-		free_partial_cmds(proc->commands, *(proc->cmd_idx));
-		proc->commands = NULL;
-		return ;
-	}
-	process_command_words(proc->commands[*(proc->cmd_idx)], cmd_words);
-	free_args(cmd_words);
-	*(proc->start) = i + 1;
-	(*(proc->cmd_idx))++;
-}
-
-/**
- * Traite une commande avec opérateur logique (|| ou &&)
- *
- * Cette fonction :
- * - Extrait les mots de la commande entre start et i
- * - Crée une nouvelle structure de commande
- * - Définit l'opérateur logique (1 pour ||, 2 pour &&)
- * - Traite les mots pour séparer arguments et redirections
- * - Met à jour les indices pour la prochaine commande
- *
- * @param proc: Structure contenant les données de traitement
- * @param i: Index du token logique dans le tableau de mots
- * @param operator: Type d'opérateur (1 pour ||, 2 pour &&)
- *
- * Note: Cette fonction gère la libération mémoire en cas d'échec d'allocation
- */
-static void	process_logical_command(t_cmd_process *proc, int i, int operator)
-{
-	char	**cmd_words;
-
-	cmd_words = create_cmd_words(proc->words, *(proc->start), i);
-	if (!cmd_words)
-		return ;
-	proc->commands[*(proc->cmd_idx)] = create_cmd();
-	if (!proc->commands[*(proc->cmd_idx)])
-	{
-		free_args(cmd_words);
-		free_partial_cmds(proc->commands, *(proc->cmd_idx));
-		proc->commands = NULL;
-		return ;
-	}
-	process_command_words(proc->commands[*(proc->cmd_idx)], cmd_words);
-	proc->commands[*(proc->cmd_idx)]->logical_operator = operator;
-	free_args(cmd_words);
-	*(proc->start) = i + 1;
-	(*(proc->cmd_idx))++;
-}
-
-/**
- * Traite tous les tokens pour séparer les commandes selon les pipes et opérateurs logiques
+ * Traite tous les tokens pour séparer les commandes selon les pipes
+ * et opérateurs logiques
  *
  * Cette fonction parcourt tous les mots et :
  * - Détecte les pipes (|) pour séparer les commandes
@@ -119,20 +47,11 @@ static void	process_pipe_tokens(char **words, t_cmd **commands, int *cmd_count)
 	while (words[i])
 	{
 		if (words[i][0] == '|' && words[i][1] == '\0')
-		{
-			process_pipe_command(&proc, i);
-			(*cmd_count)++;
-		}
+			handle_pipe_token_cmd(&proc, i);
 		else if (ft_strncmp(words[i], "||", 2) == 0)
-		{
-			process_logical_command(&proc, i, 1);
-			(*cmd_count)++;
-		}
+			handle_logical_token_cmd(&proc, i, 1);
 		else if (ft_strncmp(words[i], "&&", 2) == 0)
-		{
-			process_logical_command(&proc, i, 2);
-			(*cmd_count)++;
-		}
+			handle_logical_token_cmd(&proc, i, 2);
 		i++;
 	}
 	process_final_command(&proc, start, i);
@@ -140,7 +59,8 @@ static void	process_pipe_tokens(char **words, t_cmd **commands, int *cmd_count)
 }
 
 /**
- * Tokenise une ligne d'entrée en commandes séparées par des pipes et opérateurs logiques
+ * Tokenise une ligne d'entrée en commandes séparées par des pipes
+ * et opérateurs logiques
  *
  * Cette fonction est le point d'entrée principal pour la tokenization :
  * - Tokenise d'abord l'entrée en mots individuels

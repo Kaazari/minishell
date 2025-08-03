@@ -71,7 +71,7 @@ void	add_new_env_var(char *var, t_shell *shell)
 		return ;
 	}
 	new_envp[i + 1] = NULL;
-	free_args(shell->envp);
+	free_envp(shell->envp);
 	shell->envp = new_envp;
 }
 
@@ -82,31 +82,22 @@ void	add_or_update_env(char *var, t_shell *shell)
 	add_new_env_var(var, shell);
 }
 
-char	**dup_envp(char **envp)
+char	*get_env_value(char *var, char **envp)
 {
 	int		i;
-	int		count;
-	char	**copy;
+	int		len;
+	char	*value;
 
-	count = 0;
-	while (envp[count])
-		count++;
-	copy = malloc(sizeof(char *) * (count + 1));
-	if (!copy)
-		return (NULL);
 	i = 0;
-	while (i < count)
+	len = ft_strlen(var);
+	while (envp[i])
 	{
-		copy[i] = ft_strdup(envp[i]);
-		if (!copy[i])
+		if (ft_strncmp(envp[i], var, len) == 0 && envp[i][len] == '=')
 		{
-			while (i > 0)
-				free(copy[--i]);
-			free(copy);
-			return (NULL);
+			value = envp[i] + len + 1;
+			return (value);
 		}
 		i++;
 	}
-	copy[count] = NULL;
-	return (copy);
+	return (NULL);
 }

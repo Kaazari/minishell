@@ -13,8 +13,6 @@
 #include "../../include/minishell.h"
 
 /* Variable globale pour gérer les signaux reçus par le shell */
-volatile sig_atomic_t	g_signal = 0;
-/* Variable globale pour stocker le statut de sortie lors de l'interruption par signal */
 int	g_signal_exit_status = 0;
 
 /**
@@ -30,7 +28,8 @@ int	g_signal_exit_status = 0;
  * @param shell: Structure shell à initialiser
  * @param envp: Environnement système à dupliquer
  *
- * Note: En cas d'échec d'allocation de pipex, le programme se termine avec exit(1)
+ * Note: En cas d'échec d'allocation de pipex,
+ le programme se termine avec exit(1)
  */
 static void	init_shell(t_shell *shell, char **envp)
 {
@@ -45,6 +44,8 @@ static void	init_shell(t_shell *shell, char **envp)
 		exit(1);
 	}
 	shell->pipex->pipe_fds = NULL;
+	shell->pipex->cmd_count = 0;
+	shell->pipex->pipe_count = 0;
 	shell->cmd = NULL;
 	shell->current_commands = NULL;
 	shell->current_cmd_count = 0;
@@ -66,7 +67,8 @@ static void	init_shell(t_shell *shell, char **envp)
  * @param envp: Environnement système
  * @return 0 en cas de succès
  *
- * Note: Les paramètres ac et av sont ignorés car le shell ne prend pas d'arguments
+ * Note: Les paramètres ac et av sont ignorés
+ * car le shell ne prend pas d'arguments
  */
 int	main(int ac, char **av, char **envp)
 {

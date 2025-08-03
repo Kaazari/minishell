@@ -12,26 +12,6 @@
 
 #include "../../include/minishell.h"
 
-char	*get_env_value(char *var, char **envp)
-{
-	int		i;
-	int		len;
-	char	*value;
-
-	i = 0;
-	len = ft_strlen(var);
-	while (envp[i])
-	{
-		if (ft_strncmp(envp[i], var, len) == 0 && envp[i][len] == '=')
-		{
-			value = envp[i] + len + 1;
-			return (value);
-		}
-		i++;
-	}
-	return (NULL);
-}
-
 static int	handle_exit_status(char *word, int *pos, t_shell *shell)
 {
 	char	*exit_str;
@@ -69,8 +49,15 @@ static void	insert_variable_value(t_var_expansion *var_exp, char *var_value)
 {
 	if (var_value)
 	{
-			ft_strlcpy(var_exp->word + *(var_exp->pos), var_value, ft_strlen(var_value) + 1);
-	*(var_exp->pos) += ft_strlen(var_value);
+		if (*(var_exp->pos) + ft_strlen(var_value) > 1000)
+		{
+			write(2, "minishell: expansion would exceed limit\n", 38);
+			write(2, "\n", 1);
+			return ;
+		}
+		ft_strlcpy(var_exp->word + *(var_exp->pos),
+			var_value, ft_strlen(var_value) + 1);
+		*(var_exp->pos) += ft_strlen(var_value);
 	}
 }
 
@@ -89,6 +76,13 @@ int	add_variable_to_word(t_var_expansion *var_exp, t_shell *shell)
 	if (result == -1)
 		return (var_exp->i);
 	var_value = get_env_value(var_name, shell->envp);
+	if (var_value && ft_strlen(var_value) > 1000)
+	{
+		write(2, "minishell: variable value too large\n", 35);
+		write(2, "\n", 1);
+		free(var_name);
+		return (var_exp->i);
+	}
 	insert_variable_value(var_exp, var_value);
 	free(var_name);
 	return (result);

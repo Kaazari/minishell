@@ -25,36 +25,16 @@
  * @param cmd: Structure de commande à initialiser
  * @return 0 en cas de succès, -1 en cas d'échec d'allocation
  *
- * Note: En cas d'échec d'allocation, cette fonction libère les ressources
- * déjà allouées pour éviter les fuites mémoire
+ * Note: En cas d'échec d'allocation, cette fonction libère les
+ * ressources déjà allouées pour éviter les fuites mémoire
  */
 static int	init_cmd_struct(t_cmd *cmd)
 {
-	int	i;
-
-	cmd->args = malloc(sizeof(char *) * 64);
-	if (!cmd->args)
-	{
-		cmd->redirs = NULL;
+	if (init_cmd_args(cmd) == -1)
 		return (-1);
-	}
-	i = 0;
-	while (i < 64)
-	{
-		cmd->args[i] = NULL;
-		i++;
-	}
-	cmd->redirs = malloc(sizeof(t_redir) * 10);
-	if (!cmd->redirs)
-	{
-		free(cmd->args);
-		cmd->args = NULL;
+	if (init_cmd_redirs(cmd) == -1)
 		return (-1);
-	}
-	cmd->redir_count = 0;
-	cmd->stdin_backup = -1;
-	cmd->stdout_backup = -1;
-	cmd->logical_operator = 0;
+	init_cmd_defaults(cmd);
 	return (0);
 }
 
@@ -66,9 +46,11 @@ static int	init_cmd_struct(t_cmd *cmd)
  * - Initialise tous les champs avec init_cmd_struct
  * - Gère les erreurs d'allocation
  *
- * @return Pointeur vers la nouvelle structure de commande ou NULL en cas d'erreur
+ * @return Pointeur vers la nouvelle
+ structure de commande ou NULL en cas d'erreur
  *
- * Note: Cette fonction gère la libération mémoire en cas d'échec d'initialisation
+ * Note: Cette fonction gère la libération mémoire en cas d'échec
+ * d'initialisation
  */
 t_cmd	*create_cmd(void)
 {
@@ -83,30 +65,6 @@ t_cmd	*create_cmd(void)
 		return (NULL);
 	}
 	return (cmd);
-}
-
-/**
- * Initialise les données de tokenization pour le traitement des mots
- *
- * Cette fonction :
- * - Configure les pointeurs vers les tableaux et compteurs
- * - Initialise les compteurs à 0
- * - Nettoie le buffer de mot courant
- *
- * @param data: Structure de données de tokenization à initialiser
- * @param init: Structure d'initialisation contenant les pointeurs
- *
- * Note: Cette fonction utilise memset pour nettoyer le buffer de mot
- */
-static void	init_tokenize_data(t_token_data *data, t_tokenize_init *init)
-{
-	data->words = init->words;
-	data->word_count = init->word_count;
-	data->current_word = init->current_word;
-	data->word_pos = init->word_pos;
-	*(init->word_count) = 0;
-	*(init->word_pos) = 0;
-	memset(init->current_word, 0, 1000);
 }
 
 /**
@@ -134,24 +92,21 @@ char	**tokenize_words(char *input, t_shell *shell)
 	t_token_data	data;
 	t_tokenize_init	init;
 
-	init.words = malloc(sizeof(char *) * 1000);
-	if (!init.words)
-		return (NULL);
-	quote_state = 0;
-	init.current_word = current_word;
-	init.word_count = &counts[0];
-	init.word_pos = &counts[1];
-	init_tokenize_data(&data, &init);
-	process_input_chars(input, &data, &quote_state, shell);
-
-	if (quote_state != 0)
+	if (ft_strlen(input) > 1000)
 	{
-		free(init.words);
+		write(2, "minishell: input too large\n", 26);
+		write(2, "\n", 1);
 		return (NULL);
 	}
-
-	if (counts[1] > 0)
-		save_word(init.words, &counts[0], current_word, counts[1]);
-	init.words[counts[0]] = NULL;
+	if (init_tokenize_struct(&init, current_word, counts) == -1)
+		return (NULL);
+	quote_state = 0;
+	init_tokenize_data(&data, &init);
+	process_input_chars(input, &data, &quote_state, shell);
+	if (quote_state != 0)
+		return (handle_quote_error(init.words));
+	save_word(init.words, init.word_count, init.current_word,
+		*(init.word_pos));
+	init.words[*(init.word_count)] = NULL;
 	return (init.words);
 }

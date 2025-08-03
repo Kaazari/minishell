@@ -12,16 +12,34 @@
 
 #include "../../include/minishell.h"
 
+/**
+ * Gestionnaire de signal pour les heredocs
+ *
+ * Cette fonction :
+ * - Met à jour g_signal_exit_status avec le code 130 (SIGINT)
+ * - Affiche un retour à la ligne
+ * - Ferme l'entrée standard pour interrompre la lecture
+ *
+ * @param signo: Numéro du signal reçu
+ */
 static void	heredoc_signal_handler(int signo)
 {
-	g_signal = signo;
 	if (signo == SIGINT)
 	{
+		g_signal_exit_status = 130;
 		write(STDOUT_FILENO, "\n", 1);
 		close(STDIN_FILENO);
 	}
 }
 
+/**
+ * Configure les signaux pour les heredocs
+ *
+ * Cette fonction :
+ * - Configure le gestionnaire de signal pour SIGINT
+ * - Ignore SIGQUIT pendant les heredocs
+ * - Utilise SA_RESTART pour éviter l'interruption des appels système
+ */
 void	setup_heredoc_signals(void)
 {
 	struct sigaction	sa;
@@ -34,6 +52,13 @@ void	setup_heredoc_signals(void)
 	sigaction(SIGQUIT, &sa, NULL);
 }
 
+/**
+ * Restaure les signaux principaux après un heredoc
+ *
+ * Cette fonction :
+ * - Remet le gestionnaire de signal principal pour SIGINT
+ * - Ignore SIGQUIT comme dans le shell principal
+ */
 void	restore_main_signals(void)
 {
 	struct sigaction	sa;

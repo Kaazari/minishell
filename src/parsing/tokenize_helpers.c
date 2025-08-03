@@ -42,36 +42,11 @@ void	add_char_to_word(char *word, int *pos, char c)
 
 void	save_word(char **words, int *count, char *word, int len)
 {
-	char	*word_copy;
-	int		i;
-
 	if (len == 0)
 		return ;
-	word_copy = malloc(len + 1);
-	if (!word_copy)
+	if (is_word_empty(word, len))
 		return ;
-	ft_strlcpy(word_copy, word, len + 1);
-	/* Check if the word is empty after copying */
-	i = 0;
-	while (i < len && (word_copy[i] == ' ' || word_copy[i] == '\t' ||
-		   word_copy[i] == '\n' || word_copy[i] == '\r'))
-		i++;
-	if (i == len)
-	{
-		free(word_copy);
+	if (is_empty_quotes(word, len))
 		return ;
-	}
-	/* Check if the word is just quotes */
-	if (len == 2 && word_copy[0] == '"' && word_copy[1] == '"')
-	{
-		free(word_copy);
-		return ;
-	}
-	if (len == 2 && word_copy[0] == '\'' && word_copy[1] == '\'')
-	{
-		free(word_copy);
-		return ;
-	}
-	words[*count] = word_copy;
-	(*count)++;
+	add_word_to_array(words, count, word, len);
 }

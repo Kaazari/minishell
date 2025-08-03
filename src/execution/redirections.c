@@ -12,22 +12,6 @@
 
 #include "../../include/minishell.h"
 
-int	has_heredoc(t_cmd *cmd)
-{
-	int	i;
-
-	if (!cmd || !cmd->redirs)
-		return (0);
-	i = 0;
-	while (i < cmd->redir_count)
-	{
-		if (cmd->redirs[i].type == REDIR_HEREDOC)
-			return (1);
-		i++;
-	}
-	return (0);
-}
-
 int	preprocess_all_heredocs(t_shell *shell, t_cmd **commands, int cmd_count)
 {
 	int	i;
@@ -44,7 +28,7 @@ int	preprocess_all_heredocs(t_shell *shell, t_cmd **commands, int cmd_count)
 				if (commands[i]->redirs[j].type == REDIR_HEREDOC)
 				{
 					handle_heredoc(commands[i], j, shell);
-					if (shell->state == 1) /* Signal received */
+					if (shell->state == 1)
 						return (-1);
 				}
 				j++;
@@ -53,6 +37,36 @@ int	preprocess_all_heredocs(t_shell *shell, t_cmd **commands, int cmd_count)
 		i++;
 	}
 	return (0);
+}
+
+static void	handle_output_redir(t_cmd *cmd, int i)
+{
+	if (cmd->redirs[i].type == REDIR_OUT
+		|| cmd->redirs[i].type == REDIR_APPEND)
+	{
+		handle_output_redirection(cmd, i);
+	}
+}
+
+static void	handle_input_redir(t_cmd *cmd, int i)
+{
+	if (cmd->redirs[i].type == REDIR_IN)
+	{
+		handle_input_redirection(cmd, i);
+	}
+}
+
+static void	handle_heredoc_redir(t_cmd *cmd, int i)
+{
+	if (cmd->redirs[i].type == REDIR_HEREDOC)
+	{
+		if (cmd->redirs[i].is_heredoc_fd > 0)
+		{
+			dup2(cmd->redirs[i].is_heredoc_fd, STDIN_FILENO);
+			close(cmd->redirs[i].is_heredoc_fd);
+			cmd->redirs[i].is_heredoc_fd = -1;
+		}
+	}
 }
 
 void	handle_redirections(t_cmd *cmd, t_shell *shell)
@@ -65,47 +79,9 @@ void	handle_redirections(t_cmd *cmd, t_shell *shell)
 	i = 0;
 	while (i < cmd->redir_count)
 	{
-		if (cmd->redirs[i].type == REDIR_OUT
-			|| cmd->redirs[i].type == REDIR_APPEND)
-		{
-			handle_output_redirection(cmd, i);
-		}
-		else if (cmd->redirs[i].type == REDIR_IN)
-		{
-			handle_input_redirection(cmd, i);
-		}
-		else if (cmd->redirs[i].type == REDIR_HEREDOC)
-		{
-			if (cmd->redirs[i].is_heredoc_fd > 0)
-			{
-				dup2(cmd->redirs[i].is_heredoc_fd, STDIN_FILENO);
-				close(cmd->redirs[i].is_heredoc_fd);
-				cmd->redirs[i].is_heredoc_fd = -1;
-			}
-		}
-		i++;
-	}
-}
-
-void	close_parent_heredoc_fds(t_cmd **commands, int cmd_count)
-{
-	int	i;
-	int	j;
-
-	i = 0;
-	while (i < cmd_count && commands[i])
-	{
-		j = 0;
-		while (j < commands[i]->redir_count)
-		{
-			if (commands[i]->redirs[j].type == REDIR_HEREDOC
-				&& commands[i]->redirs[j].is_heredoc_fd > 0)
-			{
-				close(commands[i]->redirs[j].is_heredoc_fd);
-				commands[i]->redirs[j].is_heredoc_fd = -1;
-			}
-			j++;
-		}
+		handle_output_redir(cmd, i);
+		handle_input_redir(cmd, i);
+		handle_heredoc_redir(cmd, i);
 		i++;
 	}
 }

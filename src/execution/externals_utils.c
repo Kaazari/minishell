@@ -20,7 +20,8 @@ static int	is_valid_command_name(char *cmd)
 		return (0);
 	if (ft_strncmp(cmd, "!", 2) == 0)
 		return (0);
-	if (ft_strncmp(cmd, "\\n", 3) == 0 || ft_strncmp(cmd, "\\t", 3) == 0 || ft_strncmp(cmd,
+	if (ft_strncmp(cmd, "\\n", 3) == 0
+		|| ft_strncmp(cmd, "\\t", 3) == 0 || ft_strncmp(cmd,
 			"\\r", 3) == 0)
 		return (0);
 	i = 0;
@@ -49,7 +50,8 @@ char	*validate_and_get_path(char **args, t_shell *shell)
 	if (!args || !args[0])
 		return (NULL);
 	if (ft_strncmp(args[0], "!", 2) == 0 || ft_strncmp(args[0], "\\n", 3) == 0
-		|| ft_strncmp(args[0], "\\t", 3) == 0 || ft_strncmp(args[0], "\\r", 3) == 0)
+		|| ft_strncmp(args[0], "\\t", 3) == 0
+		|| ft_strncmp(args[0], "\\r", 3) == 0)
 	{
 		shell->exit_status = 0;
 		return (NULL);

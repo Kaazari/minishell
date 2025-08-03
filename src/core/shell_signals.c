@@ -16,11 +16,12 @@
  * Gestionnaire de signaux pour le minishell
  *
  * Cette fonction gère les signaux reçus par le shell :
- * - SIGINT (Ctrl+C) : Interrompt la commande en cours et affiche un nouveau prompt
+ * - SIGINT (Ctrl+C) : Interrompt la commande en cours
+ et affiche un nouveau prompt
  * - SIGQUIT (Ctrl-\) : Termine le processus avec un statut d'erreur
  *
  * Comportement :
- * - Met à jour g_signal avec le numéro du signal reçu
+ * - Met à jour g_signal_exit_status avec le statut du signal
  * - Pour SIGINT : affiche un retour à la ligne, vide la ligne de commande
  *   et redémarre le prompt (sauf si g_signal_exit_status == 999)
  * - Pour SIGQUIT : met à jour le statut de sortie à 131
@@ -32,22 +33,22 @@
  */
 void	signal_handler(int signo)
 {
-	g_signal = signo;
 	if (signo == SIGINT)
 	{
 		if (g_signal_exit_status == 999)
 			return ;
 		g_signal_exit_status = 130;
 		write(STDOUT_FILENO, "\n", 1);
-		rl_replace_line("", 0);
 		rl_on_new_line();
-		if (g_signal_exit_status != 999)
-			rl_redisplay();
+		rl_replace_line("", 0);
+		rl_redisplay();
 	}
 	else if (signo == SIGQUIT)
 	{
-		if (g_signal_exit_status == 999)
-			return ;
+		if (g_signal_exit_status != 999)
+		{
+			write(STDOUT_FILENO, "Quit (core dumped)\n", 19);
+		}
 		g_signal_exit_status = 131;
 	}
 }
@@ -58,21 +59,14 @@ void	signal_handler(int signo)
  * Cette fonction :
  * - Configure SIGINT (Ctrl+C) pour utiliser signal_handler
  * - Configure SIGQUIT (Ctrl-\) pour être ignoré dans le shell principal
- * - Utilise sigaction pour une gestion plus robuste que signal()
+ * - Utilise signal() comme dans le code de référence
  *
- * Note: SIGQUIT est ignoré dans le shell principal mais sera géré dans les processus enfants
+ * Note: SIGQUIT est ignoré dans le shell
+ * principal mais sera géré dans les processus enfants
  * pour permettre l'affichage du message "Quit (core dumped)"
  */
 void	setup_signals(void)
 {
-	struct sigaction	sa;
-
-	sa.sa_handler = signal_handler;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = 0;
-	sigaction(SIGINT, &sa, NULL);
-	sa.sa_handler = SIG_IGN;
-	sigaction(SIGQUIT, &sa, NULL);
+	signal(SIGINT, signal_handler);
+	signal(SIGQUIT, SIG_IGN);
 }
-
-

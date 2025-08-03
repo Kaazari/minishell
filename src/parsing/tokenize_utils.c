@@ -23,9 +23,9 @@ void	handle_redirection_token(t_token_data *data, char *input, int *i)
 	if (input[*i] == input[*i + 1])
 	{
 		if (input[*i] == '>')
-			strcpy(data->current_word, ">>");
+			ft_strlcpy(data->current_word, ">>", 3);
 		else
-			strcpy(data->current_word, "<<");
+			ft_strlcpy(data->current_word, "<<", 3);
 		save_word(data->words, data->word_count, data->current_word, 2);
 		*i += 2;
 	}
@@ -46,7 +46,7 @@ void	handle_pipe_token(t_token_data *data, int *i)
 			*(data->word_pos));
 		*(data->word_pos) = 0;
 	}
-	strcpy(data->current_word, "|");
+	ft_strlcpy(data->current_word, "|", 2);
 	save_word(data->words, data->word_count, data->current_word, 1);
 	(*i)++;
 }

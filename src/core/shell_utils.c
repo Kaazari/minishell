@@ -29,20 +29,13 @@
  */
 static int	handle_input_processing(t_shell *shell, char *input)
 {
-	if (g_signal_exit_status == 130)
-	{
-		shell->exit_status = 130;
-		g_signal_exit_status = 0;
-		free(input);
-		return (1);
-	}
-	if (ft_strlen(input) > 0)
-		add_history(input);
-	if (process_empty_input(input))
+	(void)shell;
+	if (!input || ft_strlen(input) == 0)
 	{
 		free(input);
 		return (1);
 	}
+	add_history(input);
 	return (0);
 }
 
@@ -52,13 +45,13 @@ static int	handle_input_processing(t_shell *shell, char *input)
  * Cette fonction implémente la boucle infinie du shell qui :
  * - Affiche le prompt "minishell> "
  * - Lit l'entrée utilisateur avec readline
- * - Gère les signaux reçus pendant la lecture
  * - Traite l'entrée et exécute les commandes
  * - Gère la sortie propre du shell (Ctrl+D)
  *
  * Gestion des signaux :
  * - Si g_signal_exit_status != 0 et != 999 : met à jour shell->exit_status
- * - Si g_signal_exit_status == 999 : réinitialise le flag (processus enfant terminé)
+ * - Si g_signal_exit_status == 999 : réinitialise
+ le flag (processus enfant terminé)
  *
  * @param shell: Structure shell contenant l'état global
  *
@@ -77,17 +70,44 @@ void	main_shell_loop(t_shell *shell)
 			shell->exit_status = g_signal_exit_status;
 			g_signal_exit_status = 0;
 		}
-		else if (g_signal_exit_status == 999)
-		{
-			g_signal_exit_status = 0;
-		}
 		if (!input)
-			clean_exit(shell, 0);
+		{
+			printf("exit\n");
+			exit(0);
+		}
 		if (handle_input_processing(shell, input))
 			continue ;
 		process_command(shell, input);
 		free(input);
-		if (shell->state == 2)
-			clean_exit(shell, 131);
 	}
+}
+
+/**
+ * Détermine et exécute le type de commandes approprié
+ *
+ * Cette fonction analyse les commandes et choisit la méthode d'exécution :
+ * - Commande simple : exécution directe
+ * - Commandes avec opérateurs logiques : exécution conditionnelle
+ * - Commandes avec pipes : exécution parallèle
+ *
+ * @param shell: Structure shell contenant l'état
+ * @param commands: Tableau de commandes à exécuter
+ * @param cmd_count: Nombre de commandes dans le tableau
+ *
+ * Note: Cette fonction met à jour shell->current_commands pour le suivi
+ * et nettoie ces pointeurs après exécution
+ */
+void	handle_commands_execution(t_shell *shell, t_cmd **commands,
+			int cmd_count)
+{
+	shell->current_commands = commands;
+	shell->current_cmd_count = cmd_count;
+	if (cmd_count == 1)
+		handle_single_command(shell, commands);
+	else if (has_logical_operators(commands, cmd_count))
+		handle_logical_commands(shell, commands, cmd_count);
+	else
+		handle_piped_commands(shell, commands, cmd_count);
+	shell->current_commands = NULL;
+	shell->current_cmd_count = 0;
 }

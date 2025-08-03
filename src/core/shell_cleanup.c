@@ -13,20 +13,11 @@
 #include "../../include/minishell.h"
 
 /**
- * Force le nettoyage de toutes les ressources allouées par le shell
- *
- * Cette fonction libère de manière sécurisée :
- * - La commande courante (shell->cmd) et ses ressources
- * - La structure pipex et ses descripteurs de fichiers
- * - Les commandes en cours d'exécution (current_commands)
- * - L'environnement local et les variables
+ * Nettoie les commandes et la structure pipex
  *
  * @param shell: Structure shell à nettoyer
- *
- * Note: Cette fonction vérifie l'existence des pointeurs avant de les libérer
- * pour éviter les segfaults. Elle met les pointeurs à NULL après libération.
  */
-static void	force_cleanup(t_shell *shell)
+static void	cleanup_commands_and_pipex(t_shell *shell)
 {
 	if (shell && shell->cmd)
 	{
@@ -46,7 +37,55 @@ static void	force_cleanup(t_shell *shell)
 		shell->current_commands = NULL;
 		shell->current_cmd_count = 0;
 	}
-	cleanup_envp(shell);
+}
+
+/**
+ * Nettoie les environnements et les chemins
+ *
+ * @param shell: Structure shell à nettoyer
+ */
+static void	cleanup_environments_and_paths(t_shell *shell)
+{
+	if (shell->envp)
+	{
+		free_envp(shell->envp);
+		shell->envp = NULL;
+	}
+	if (shell->local_envp)
+	{
+		free_envp(shell->local_envp);
+		shell->local_envp = NULL;
+	}
+	if (shell->pwd)
+	{
+		free(shell->pwd);
+		shell->pwd = NULL;
+	}
+	if (shell->oldpwd)
+	{
+		free(shell->oldpwd);
+		shell->oldpwd = NULL;
+	}
+}
+
+/**
+ * Force le nettoyage de toutes les ressources allouées par le shell
+ *
+ * Cette fonction libère de manière sécurisée :
+ * - La commande courante (shell->cmd) et ses ressources
+ * - La structure pipex et ses descripteurs de fichiers
+ * - Les commandes en cours d'exécution (current_commands)
+ * - L'environnement local et les variables
+ *
+ * @param shell: Structure shell à nettoyer
+ *
+ * Note: Cette fonction vérifie l'existence des pointeurs avant de les libérer
+ * pour éviter les segfaults. Elle met les pointeurs à NULL après libération.
+ */
+static void	force_cleanup(t_shell *shell)
+{
+	cleanup_commands_and_pipex(shell);
+	cleanup_environments_and_paths(shell);
 }
 
 /**

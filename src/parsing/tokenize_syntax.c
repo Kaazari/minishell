@@ -40,10 +40,12 @@ int	check_syntax_errors(char **words)
 	i = 0;
 	while (words[i])
 	{
-		if ((ft_strncmp(words[i], ">", 2) == 0 || ft_strncmp(words[i], "<", 2) == 0
-				|| ft_strncmp(words[i], ">>", 3) == 0 || ft_strncmp(words[i], "<<", 3) == 0)
-			&& (!words[i + 1] || words[i + 1][0] == '>' || words[i
-				+ 1][0] == '<' || words[i + 1][0] == '|'))
+		if ((ft_strncmp(words[i], ">", 2) == 0
+				|| ft_strncmp(words[i], "<", 2) == 0
+				|| ft_strncmp(words[i], ">>", 3) == 0
+				|| ft_strncmp(words[i], "<<", 3) == 0)
+			&& (!words[i + 1] || words[i + 1][0] == '>'
+			|| words[i + 1][0] == '<' || words[i + 1][0] == '|'))
 		{
 			return (check_redirection_syntax(words, i));
 		}

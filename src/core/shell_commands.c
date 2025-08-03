@@ -29,6 +29,11 @@
  */
 void	handle_single_command(t_shell *shell, t_cmd **commands)
 {
+	if (preprocess_all_heredocs(shell, commands, 1) == -1)
+	{
+		free_partial_cmds(commands, 1);
+		return ;
+	}
 	shell->cmd = commands[0];
 	execute_shell_command(commands[0]->args, shell, 1);
 	shell->cmd = NULL;
@@ -62,23 +67,9 @@ void	handle_logical_commands(t_shell *shell, t_cmd **commands, int count)
 	i = 0;
 	while (i < count && commands[i])
 	{
-		shell->cmd = commands[i];
-		execute_shell_command(commands[i]->args, shell, 1);
-		prev_exit_status = shell->exit_status;
-
-		if (i + 1 < count && commands[i + 1])
-		{
-			if (commands[i]->logical_operator == 1)
-			{
-				if (prev_exit_status == 0)
-					break ;
-			}
-			else if (commands[i]->logical_operator == 2)
-			{
-				if (prev_exit_status != 0)
-					break ;
-			}
-		}
+		prev_exit_status = execute_logical_command(shell, commands, i);
+		if (!should_continue_logical(commands, i, prev_exit_status))
+			break ;
 		i++;
 	}
 	shell->cmd = NULL;
@@ -98,8 +89,8 @@ void	handle_logical_commands(t_shell *shell, t_cmd **commands, int count)
  * @param commands: Tableau de commandes à exécuter
  * @param count: Nombre de commandes dans le tableau
  *
- * Note: Les heredocs sont prétraités pour éviter les problèmes avec les entrées
- * non-interactives. La structure pipex est allouée et libérée ici.
+ * Note: Les heredocs sont prétraités pour éviter les problèmes
+ * avec les entrées non-interactives.
  */
 void	handle_piped_commands(t_shell *shell, t_cmd **commands, int count)
 {
@@ -108,94 +99,18 @@ void	handle_piped_commands(t_shell *shell, t_cmd **commands, int count)
 		free_partial_cmds(commands, count);
 		return ;
 	}
-
-	shell->pipex = malloc(sizeof(t_pipex));
-	if (!shell->pipex)
-	{
-		free_partial_cmds(commands, count);
+	if (!init_pipex_for_commands(shell, commands, count))
 		return ;
-	}
-	shell->pipex->cmd_count = count;
-	shell->pipex->pipe_count = count - 1;
-
 	execute_piped_commands(shell, commands, count);
-
-	if (shell->pipex)
-	{
-		free(shell->pipex);
-		shell->pipex = NULL;
-	}
-
+	cleanup_pipex_after_execution(shell);
 	free_partial_cmds(commands, count);
-}
-
-/**
- * Vérifie si des opérateurs logiques sont présents dans les commandes
- *
- * @param commands: Tableau de commandes à vérifier
- * @param cmd_count: Nombre de commandes dans le tableau
- * @return 1 si des opérateurs logiques sont trouvés, 0 sinon
- *
- * Note: logical_operator != 0 indique la présence d'un opérateur || ou &&
- */
-static int	has_logical_operators(t_cmd **commands, int cmd_count)
-{
-	int	i;
-
-	i = 0;
-	while (i < cmd_count && commands[i])
-	{
-		if (commands[i]->logical_operator != 0)
-			return (1);
-		i++;
-	}
-	return (0);
-}
-
-/**
- * Détermine et exécute le type de commandes approprié
- *
- * Cette fonction analyse les commandes et choisit la méthode d'exécution :
- * - Commande simple : exécution directe
- * - Commandes avec opérateurs logiques : exécution conditionnelle
- * - Commandes avec pipes : exécution parallèle
- *
- * @param shell: Structure shell contenant l'état
- * @param commands: Tableau de commandes à exécuter
- * @param cmd_count: Nombre de commandes dans le tableau
- *
- * Note: Cette fonction met à jour shell->current_commands pour le suivi
- * et nettoie ces pointeurs après exécution
- */
-static void	handle_commands_execution(t_shell *shell, t_cmd **commands,
-				int cmd_count)
-{
-	shell->current_commands = commands;
-	shell->current_cmd_count = cmd_count;
-	if (cmd_count == 1)
-	{
-		handle_single_command(shell, commands);
-		shell->current_commands = NULL;
-		shell->current_cmd_count = 0;
-	}
-	else if (has_logical_operators(commands, cmd_count))
-	{
-		handle_logical_commands(shell, commands, cmd_count);
-		shell->current_commands = NULL;
-		shell->current_cmd_count = 0;
-	}
-	else
-	{
-		handle_piped_commands(shell, commands, cmd_count);
-		shell->current_commands = NULL;
-		shell->current_cmd_count = 0;
-	}
 }
 
 /**
  * Traite et exécute une ligne de commande saisie par l'utilisateur
  *
- * Cette fonction est le point d'entrée principal pour l'exécution des commandes :
+ * Cette fonction est le point d'entrée principal
+ pour l'exécution des commandes :
  * - Vérifie si l'entrée est valide (non vide)
  * - Tokenise l'entrée en commandes séparées
  * - Vérifie la syntaxe et la validité des commandes
@@ -206,7 +121,7 @@ static void	handle_commands_execution(t_shell *shell, t_cmd **commands,
  * @param input: Ligne de commande saisie par l'utilisateur
  *
  * Note: Les commandes vides ou ne contenant que des espaces sont ignorées.
- * Les commandes avec des arguments vides génèrent une erreur "command not found"
+ * Les commandes avec des arguments vides génèrent une erreur.
  */
 void	process_command(t_shell *shell, char *input)
 {
@@ -215,18 +130,13 @@ void	process_command(t_shell *shell, char *input)
 
 	if (!input || ft_strlen(input) == 0)
 		return ;
-
 	commands = tokenize_piped_commands(input, &cmd_count, shell);
 	if (!commands)
 		return ;
-
-	if (!commands[0] || !commands[0]->args || !commands[0]->args[0] || ft_strlen(commands[0]->args[0]) == 0)
+	if (!is_valid_command(commands, cmd_count))
 	{
-		printf("minishell: : command not found\n");
-		shell->exit_status = 127;
-		free_partial_cmds(commands, cmd_count);
+		handle_command_not_found(commands, cmd_count, shell);
 		return ;
 	}
-
 	handle_commands_execution(shell, commands, cmd_count);
 }
