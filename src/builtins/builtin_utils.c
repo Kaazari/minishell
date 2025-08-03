@@ -79,7 +79,7 @@ static int	handle_exit_value(char *arg)
 
 	value = ft_atoi(arg);
 	if (value > 255)
-		return (255);
+		return (value % 256);
 	else if (value < 0)
 		return (256 + (value % 256));
 	else
