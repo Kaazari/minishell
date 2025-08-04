@@ -358,7 +358,7 @@ void	expand_var_value(char *var_value, t_token_data *data);
 
 int			check_signal_or_eof(int bytes_read);
 char		*read_line_from_stdin(void);
-char		*read_interactive_line(void);
+
 char		*read_non_interactive_line(void);
 void		handle_heredoc_error(int *pipe_fd, t_cmd *cmd, int i, t_shell *shell);
 void		handle_heredoc_success(int *pipe_fd, t_cmd *cmd, int i);

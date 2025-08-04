@@ -26,6 +26,7 @@ static void	handle_single_context(char *path, char **args,
 	pid_t	pid;
 	int		status;
 
+	status = 0;
 	shell->state = 3;
 	pid = fork();
 	if (pid == 0)

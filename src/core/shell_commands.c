@@ -139,4 +139,11 @@ void	process_command(t_shell *shell, char *input)
 		return ;
 	}
 	handle_commands_execution(shell, commands, cmd_count);
+	shell->cmd = NULL;
+	if (shell->current_commands)
+	{
+		free_partial_cmds(shell->current_commands, shell->current_cmd_count);
+		shell->current_commands = NULL;
+		shell->current_cmd_count = 0;
+	}
 }

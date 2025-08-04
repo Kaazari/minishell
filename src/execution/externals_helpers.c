@@ -58,8 +58,12 @@ void	handle_signal_termination(int status, t_shell *shell)
 	{
 		shell->exit_status = 128 + signal_num;
 	}
-	else
+	else if (signal_num > 0)
 	{
 		shell->exit_status = 128 + signal_num;
+	}
+	else
+	{
+		shell->exit_status = 0;
 	}
 }

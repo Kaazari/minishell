@@ -48,6 +48,6 @@ void	execute_shell_command(char **args, t_shell *shell, int cmd_count)
 	execute_command_by_type(args, shell);
 	restore_redirections_context(shell, in_pipe_context);
 	if (in_pipe_context)
-		exit(shell->exit_status);
+		clean_exit(shell, shell->exit_status);
 	shell->state = old_state;
 }

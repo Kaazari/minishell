@@ -39,22 +39,9 @@ int	preprocess_all_heredocs(t_shell *shell, t_cmd **commands, int cmd_count)
 	return (0);
 }
 
-static void	handle_output_redir(t_cmd *cmd, int i)
-{
-	if (cmd->redirs[i].type == REDIR_OUT
-		|| cmd->redirs[i].type == REDIR_APPEND)
-	{
-		handle_output_redirection(cmd, i);
-	}
-}
 
-static void	handle_input_redir(t_cmd *cmd, int i)
-{
-	if (cmd->redirs[i].type == REDIR_IN)
-	{
-		handle_input_redirection(cmd, i);
-	}
-}
+
+
 
 static void	handle_heredoc_redir(t_cmd *cmd, int i)
 {
@@ -76,11 +63,32 @@ void	handle_redirections(t_cmd *cmd, t_shell *shell)
 	(void)shell;
 	if (!cmd || !cmd->redirs)
 		return ;
+	// Traiter seulement la dernière redirection de sortie
+	i = cmd->redir_count - 1;
+	while (i >= 0)
+	{
+		if (cmd->redirs[i].type == REDIR_OUT || cmd->redirs[i].type == REDIR_APPEND)
+		{
+			handle_output_redirection(cmd, i);
+			break ;
+		}
+		i--;
+	}
+	// Traiter seulement la dernière redirection d'entrée
+	i = cmd->redir_count - 1;
+	while (i >= 0)
+	{
+		if (cmd->redirs[i].type == REDIR_IN)
+		{
+			handle_input_redirection(cmd, i);
+			break ;
+		}
+		i--;
+	}
+	// Traiter les heredocs dans l'ordre normal
 	i = 0;
 	while (i < cmd->redir_count)
 	{
-		handle_output_redir(cmd, i);
-		handle_input_redir(cmd, i);
 		handle_heredoc_redir(cmd, i);
 		i++;
 	}

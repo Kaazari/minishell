@@ -28,7 +28,7 @@ void	handle_exit_command(char **args, t_shell *shell)
 	if (result >= 1000)
 	{
 		shell->exit_status = result - 1000;
-		exit(shell->exit_status);
+		clean_exit(shell, shell->exit_status);
 	}
 }
 

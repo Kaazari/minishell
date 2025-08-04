@@ -124,6 +124,8 @@ char	**dup_envp(char **envp)
 	int		count;
 	char	**copy;
 
+	if (!envp)
+		return (NULL);
 	count = 0;
 	while (envp[count])
 		count++;

@@ -42,6 +42,14 @@ void	restore_redirections(t_cmd *cmd)
 		{
 			restore_input_redirection(cmd, i);
 		}
+		else if (cmd->redirs[i].type == REDIR_HEREDOC)
+		{
+			if (cmd->redirs[i].is_heredoc_fd > 0)
+			{
+				close(cmd->redirs[i].is_heredoc_fd);
+				cmd->redirs[i].is_heredoc_fd = -1;
+			}
+		}
 		if (cmd->redirs[i].file)
 			free(cmd->redirs[i].file);
 		i++;

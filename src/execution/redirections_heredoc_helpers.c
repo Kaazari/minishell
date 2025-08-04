@@ -12,24 +12,9 @@
 
 #include "../../include/minishell.h"
 
-/**
- * Lit une ligne en mode interactif
- *
- * @return Ligne lue ou NULL en cas d'erreur
- */
-char	*read_interactive_line(void)
-{
-	char	*line;
 
-	line = readline("> ");
-	if (!line || g_signal_exit_status == SIGINT)
-	{
-		if (line)
-			free(line);
-		return (NULL);
-	}
-	return (line);
-}
+
+
 
 /**
  * Lit une ligne en mode non-interactif
@@ -41,14 +26,13 @@ char	*read_non_interactive_line(void)
 	char	*line;
 
 	line = read_line_from_stdin();
-	if (!line || g_signal_exit_status == SIGINT)
+	if (!line)
 	{
-		if (line)
-			free(line);
+		if (g_signal_exit_status == SIGINT)
+			return (NULL);
+		ft_putstr_fd("\n", STDERR_FILENO);
 		return (NULL);
 	}
-	if (line[ft_strlen(line) - 1] == '\n')
-		line[ft_strlen(line) - 1] = '\0';
 	return (line);
 }
 

@@ -73,7 +73,7 @@ void	main_shell_loop(t_shell *shell)
 		if (!input)
 		{
 			printf("exit\n");
-			exit(0);
+			clean_exit(shell, 0);
 		}
 		if (handle_input_processing(shell, input))
 			continue ;
